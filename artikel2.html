@@ -1,0 +1,651 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Membangun Aplikasi Web Reaktif dengan Laravel & Livewire — Ekuivalen</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter, Instrument Serif (untuk judul artikel), dan JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        dark: '#0b0b0c',
+                        cardDark: '#141414',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #111111;
+            overflow-x: clip;
+        }
+
+        /* ==========================================================================
+           DARK ANIMATED STICKY NAVBAR (Memendek di atas, Memanjang saat di-scroll)
+           ========================================================================== */
+        .navbar-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            transition: padding 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            padding-top: 18px;
+        }
+        .navbar-inner {
+            pointer-events: auto;
+            width: 92%;
+            max-width: 690px;
+            background: rgba(20, 20, 22, 0.85);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 9999px;
+            padding: 9px 12px 9px 26px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                        width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                        border-radius 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                        padding 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                        box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                        background-color 0.45s ease;
+        }
+        .navbar-wrapper.is-scrolled {
+            padding-top: 0px;
+        }
+        .navbar-wrapper.is-scrolled .navbar-inner {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 0px;
+            background: rgba(11, 11, 12, 0.96);
+            padding: 14px max(2rem, calc((100vw - 1140px) / 2));
+            box-shadow: 0 1px 0px rgba(255, 255, 255, 0.08);
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* ==========================================================================
+           TIPOGRAFI KONTEN ARTIKEL & SIDEBAR TOC
+           ========================================================================== */
+        .article-prose p {
+            color: #4b5563;
+            font-size: 16.5px;
+            line-height: 1.82;
+            margin-bottom: 1.45rem;
+        }
+        .article-prose h2 {
+            color: #111111;
+            font-size: 1.55rem;
+            font-weight: 700;
+            letter-spacing: -0.025em;
+            line-height: 1.3;
+            margin-top: 2.75rem;
+            margin-bottom: 1rem;
+            scroll-margin-top: 105px;
+        }
+        .article-prose h2:first-child {
+            margin-top: 0;
+        }
+        .article-prose ul {
+            list-style-type: disc;
+            padding-left: 1.35rem;
+            margin-bottom: 1.5rem;
+            color: #4b5563;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+        .article-prose ul li {
+            margin-bottom: 0.45rem;
+        }
+        .article-prose code {
+            background: #f4f4f5;
+            color: #111111;
+            padding: 0.15rem 0.4rem;
+            border-radius: 6px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.875em;
+        }
+        .article-prose pre code {
+            background: transparent;
+            color: inherit;
+            padding: 0;
+        }
+        .article-prose blockquote {
+            border-left: 3px solid #141414;
+            padding: 0.25rem 0 0.25rem 1.25rem;
+            margin: 1.75rem 0;
+            color: #1f2937;
+            font-style: italic;
+            font-size: 16.5px;
+            line-height: 1.75;
+        }
+        .article-prose pre {
+            background: #141414;
+            color: #e4e4e7;
+            padding: 1.15rem 1.35rem;
+            border-radius: 14px;
+            overflow-x: auto;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 13px;
+            line-height: 1.65;
+            margin: 1.5rem 0;
+        }
+
+        /* Indikator aktif pada "ISI ARTIKEL" */
+        .toc-link {
+            display: block;
+            padding: 5px 0 5px 16px;
+            margin-left: -1px;
+            border-left: 2px solid transparent;
+            color: #9ca3af;
+            font-size: 13px;
+            line-height: 1.45;
+            transition: all 0.2s ease;
+        }
+        .toc-link:hover {
+            color: #111111;
+        }
+        .toc-link.active {
+            border-left-color: #111111;
+            color: #111111;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body class="selection:bg-black selection:text-white flex flex-col min-h-screen">
+
+    <!-- ========================================================================
+         DARK STICKY ANIMATED NAVBAR
+         ======================================================================== -->
+    <header id="navbarWrapper" class="navbar-wrapper">
+        <nav class="navbar-inner">
+            <!-- Brand Name -->
+            <a href="index.html" class="font-bold text-[15px] tracking-tight text-white hover:opacity-80 transition-opacity">
+                Ekuivalen
+            </a>
+
+            <!-- Center Navigation Links -->
+            <div class="hidden md:flex items-center space-x-8 text-[13.5px] font-medium text-[#a1a1aa]">
+                <a href="blog.html" class="text-white font-semibold">Blog</a>
+                <a href="about.html" class="hover:text-white transition-colors">About</a>
+                <a href="projects.html" class="hover:text-white transition-colors">Projects</a>
+            </div>
+
+            <!-- Right CTA Button -->
+            <a href="about.html" class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white text-[13px] font-medium px-4 py-2 rounded-full transition-all">
+                <span>Read more</span>
+                <span class="text-[11px] leading-none">↗</span>
+            </a>
+        </nav>
+    </header>
+
+    <!-- ========================================================================
+         SECTION 1: DARK HERO ARTIKEL (Cover, Judul Serif, Metadata, Newsletter)
+         ======================================================================== -->
+    <section class="bg-[#0b0b0c] text-white pt-28 md:pt-36 pb-16 md:pb-24 px-6">
+        <div class="max-w-[920px] mx-auto">
+
+            <!-- Tombol Kembali ke Blog -->
+            <div class="mb-8 md:mb-10">
+                <a href="blog.html" class="inline-flex items-center gap-2 text-[13.5px] text-[#a1a1aa] hover:text-white transition-colors">
+                    <span>←</span>
+                    <span>Back to the blog</span>
+                </a>
+            </div>
+
+            <!-- Cover Thumbnail Besar (Langsung pakai gambar Anda tanpa ditimpa JS) -->
+            <div class="max-w-[780px] mx-auto rounded-[24px] sm:rounded-[28px] overflow-hidden bg-[#18181b] border border-white/10 shadow-[0_24px_65px_rgba(0,0,0,0.65)] aspect-[16/9]">
+                <img id="articleCover" src="Image/artikel2.jpeg" alt="Article Cover" class="w-full h-full object-cover" />
+            </div>
+
+            <!-- Kategori, Judul Serif & Metadata -->
+            <div class="max-w-[760px] mx-auto text-center mt-12 md:mt-14">
+                <p id="articleCategory" class="font-mono text-[11px] uppercase tracking-[0.22em] text-[#71717a] mb-5">
+                    STORY
+                </p>
+
+                <h1 id="articleTitle" class="font-serif text-[42px] sm:text-[58px] md:text-[68px] font-normal text-white leading-[1.06] tracking-[-0.01em]">
+                    Footprints on Mount Merbabu, Last Memories Before We Part Ways.
+                </h1>
+
+                <div class="mt-6 flex items-center justify-center gap-3 text-[13.5px] text-[#71717a]">
+                    <span id="articleDate">15 Nov 2026</span>
+                    <span>•</span>
+                    <span class="inline-flex items-center gap-1.5">
+                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" stroke-width="1.8" viewBox="0 0 24 24">
+                            <circle cx="12" cy="12" r="9" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 7v5l3 2" />
+                        </svg>
+                        <span id="articleReadTime">By Ekuivalen</span>
+                    </span>
+                </div>
+            </div>
+
+            <!-- Kotak Newsletter / Author Bar -->
+            <div class="max-w-[540px] mx-auto mt-12">
+                <div class="flex flex-wrap items-center justify-between gap-2 mb-3 px-1">
+                    <span class="text-[12.5px] font-semibold text-white">Join The Newsletter for Tech &amp; Builders</span>
+                    <div class="flex items-center gap-2">
+                        <div class="flex -space-x-1.5">
+                            <span class="w-4 h-4 rounded-full bg-cyan-400 border border-[#0b0b0c]"></span>
+                            <span class="w-4 h-4 rounded-full bg-amber-300 border border-[#0b0b0c]"></span>
+                            <span class="w-4 h-4 rounded-full bg-pink-400 border border-[#0b0b0c]"></span>
+                            <span class="w-4 h-4 rounded-full bg-indigo-400 border border-[#0b0b0c]"></span>
+                        </div>
+                        <span class="bg-white text-[#111] text-[10px] font-bold px-2 py-0.5 rounded-full">1,200+</span>
+                        <span class="text-[11px] text-[#a1a1aa]">Readers</span>
+                    </div>
+                </div>
+
+                <form onsubmit="handleNewsletterSubmit(event)" class="bg-[#121214] border border-white/15 rounded-2xl sm:rounded-full p-2 sm:pl-3 flex flex-col sm:flex-row items-center gap-2.5">
+                    <div class="flex items-center gap-2.5 shrink-0 pl-1 sm:pl-0 self-start sm:self-center">
+                        <img src="Image/profile.png" alt="Ekuivalen" class="w-8 h-8 rounded-full object-cover bg-zinc-800 border border-white/15" onerror="this.src='https://placehold.co/80x80/27272a/ffffff?text=E'" />
+                        <span class="text-[13px] font-semibold text-white pr-1">Ekuivalen</span>
+                    </div>
+                    <input
+                        id="newsletterEmailInput"
+                        type="email"
+                        required
+                        placeholder="your@email.com"
+                        class="w-full sm:flex-1 bg-transparent text-[13px] text-white placeholder-[#71717a] px-3 py-2 focus:outline-none"
+                    />
+                    <button type="submit" class="w-full sm:w-auto bg-white hover:bg-gray-200 text-[#111111] text-[13px] font-semibold px-5 py-2.5 rounded-full transition-colors cursor-pointer shrink-0">
+                        Subscribe
+                    </button>
+                </form>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========================================================================
+         SECTION 2: KONTEN ARTIKEL (Putih) + SIDEBAR STICKY "ISI ARTIKEL"
+         ======================================================================== -->
+    <main class="flex-1 bg-white py-16 md:py-24 px-6">
+        <div class="max-w-[1000px] mx-auto grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-14 items-start">
+
+            <!-- Kolom Kiri: Isi Artikel Lengkap -->
+            <article id="articleBody" class="lg:col-span-8 article-prose">
+                <p>
+                    Some moments deserve more than a casual goodbye at a café or a quick message in a group chat. When we realized
+                    that our routines were about to pull us in different directions, we wanted one last shared experience that none
+                    of us would forget. That was how four of us ended up packing our bags and heading toward
+                    <strong>Mount Merbabu</strong>.
+                </p>
+
+                <p>
+                    This climb wasn’t just about ticking off the <strong>3,142-meter summit</strong> from a bucket list. It was
+                    about celebrating our last stretches of time together before everyone stepped into their own chapters—and
+                    discovering how easily physical exhaustion turns into laughter when you are walking beside the right people.
+                </p>
+
+                <h2 id="why-merbabu">Why We Chose the Mountain</h2>
+                <p>
+                    Goodbyes usually feel rushed. Everyone gets caught up in plans, deadlines, and preparations for what comes next.
+                    Going up a mountain forces you to slow down. Up there, there is no rushing past the moment—just the trail
+                    ahead, the weight on your shoulders, and hours of uninterrupted time to actually talk.
+                </p>
+                <p>
+                    We didn’t need anything overly planned. We just needed a challenge we had to finish together, where nobody got
+                    left behind and every break along the slope became another story to laugh about later.
+                </p>
+
+                <h2 id="along-the-trail">Heavy Steps, Light Conversations</h2>
+                <p>
+                    The first part of the climb always starts with high energy—jokes flying around, confident paces, and plenty of
+                    photos. Then the incline starts doing its job. Legs get heavier, breaths grow shorter, and the distance between
+                    rest stops suddenly feels twice as long as it looked on the map.
+                </p>
+                <p>
+                    What kept us moving wasn’t stamina alone, but the small things that happened along the way:
+                </p>
+                <ul>
+                    <li>
+                        <strong>Constant banter on steep climbs:</strong> Whenever someone started complaining about the slope,
+                        someone else immediately turned it into a joke just to keep the mood up.
+                    </li>
+                    <li>
+                        <strong>Matching each other’s pace:</strong> Reaching the top meant nothing if we didn’t get there as a
+                        group, so we waited, shared water, and pushed through together.
+                    </li>
+                    <li>
+                        <strong>Simple breaks that felt priceless:</strong> Sitting on the dirt trail catching our breath with open
+                        mountain views around us felt better than any comfortable chair back in the city.
+                    </li>
+                </ul>
+
+                <blockquote>
+                    The soreness in your legs fades within a few days, but the laughter you shared while trying to catch your breath
+                    on a steep trail stays with you for years.
+                </blockquote>
+
+                <h2 id="cold-air-warm-stories">Cold Air and Unfiltered Talks</h2>
+                <p>
+                    As the elevation climbed and the temperature dropped, the noise of everyday life felt miles away. Wrapped in
+                    jackets against the mountain wind, our conversations naturally shifted from silly jokes to honest reflections—old
+                    memories we used to laugh at, plans we were nervous about, and where we hoped to see ourselves in the next few
+                    years.
+                </p>
+                <p>
+                    There is something about sitting together in the cold after hours of climbing that makes people more open. Even
+                    a simple warm drink and quick snacks tasted unusually good, simply because we had earned them together.
+                </p>
+
+                <h2 id="triangulation-peak">Standing at Triangulation Peak (3,142 MDPL)</h2>
+                <p>
+                    The final push toward the summit tested whatever energy we had left. Every ridge felt like the last one—until
+                    another climb appeared right behind it. Still, step by step, the horizon kept opening wider until we finally
+                    reached <strong>Puncak Triangulasi at 3,142 MDPL</strong>.
+                </p>
+                <p>
+                    Standing beside the green summit sign under the bright sky, all the fatigue suddenly felt worth it. Our faces
+                    showed the dust and exhaustion from the climb, yet none of us could stop smiling. Taking that group photo at the
+                    top wasn’t just proof that we made it—it was a snapshot of friendship right before life carried us onto separate
+                    roads.
+                </p>
+
+                <h2 id="before-we-part-ways">What We Brought Back Down</h2>
+                <p>
+                    Walking down the mountain always feels bittersweet. With every step back toward the base, reality creeps closer:
+                    new environments, busy schedules, and the quiet truth that gathering all four of us in one place won’t always be
+                    this easy anymore.
+                </p>
+                <p>
+                    Still, we didn’t come home empty-handed. We left our footprints on Mount Merbabu and brought back a memory solid
+                    enough to outlast distance. Whenever we eventually cross paths again, we’ll always have 3,142 meters of sweat,
+                    wind, and laughter to look back on.
+                </p>
+            </article>
+
+            <!-- Kolom Kanan: Sidebar Sticky "ISI ARTIKEL" (Otomatis baca semua <h2> di atas) -->
+            <aside class="hidden lg:block lg:col-span-4 sticky top-28">
+                <p class="font-mono text-[10.5px] uppercase tracking-[0.16em] text-[#9ca3af] mb-4">
+                    ARTICLE CONTENTS
+                </p>
+                <nav id="tocList" class="border-l border-[#e5e7eb] space-y-1.5">
+                    <!-- Diisi otomatis dari seluruh tag <h2> di dalam #articleBody -->
+                </nav>
+            </aside>
+
+        </div>
+
+        <!-- Navigasi Bawah Artikel -->
+        <div class="max-w-[1000px] mx-auto mt-16 pt-10 border-t border-[#e5e7eb] flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <a href="blog.html" class="inline-flex items-center gap-2 text-[14px] font-semibold text-[#141414] hover:opacity-70 transition-opacity">
+                <span>←</span>
+                <span>View all blog posts</span>
+            </a>
+            <button onclick="shareArticle()" class="inline-flex items-center gap-2 bg-[#f4f4f5] hover:bg-[#e4e4e7] text-[#141414] text-[13px] font-medium px-4 py-2 rounded-full transition-colors cursor-pointer">
+                <i class="fa-solid fa-link text-[12px]"></i>
+                <span>Copy article link</span>
+            </button>
+        </div>
+    </main>
+
+    <!-- ========================================================================
+         FOOTER MONOKROM BERGRADASI (Hitam & Putih)
+         ======================================================================== -->
+    <footer
+        class="relative overflow-hidden pt-24 sm:pt-32 text-[#141414]"
+        style="background: linear-gradient(180deg,
+            #ffffff 0%,
+            #ffffff 14%,
+            #fafafa 24%,
+            #f1f1f3 34%,
+            #e2e2e6 44%,
+            #c8c8ce 54%,
+            #9d9da6 64%,
+            #6a6a73 74%,
+            #3a3a40 84%,
+            #1b1b1f 92%,
+            #09090b 100%
+        );">
+        
+        <!-- Bagian Atas: Tagline Kiri & 4 Kolom Link Kanan -->
+        <div class="relative z-10 max-w-[1060px] mx-auto px-6 sm:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">
+
+                <!-- Kolom Kiri: Tagline & Hak Cipta -->
+                <div class="lg:col-span-5 flex flex-col justify-between">
+                    <h2 class="text-[28px] sm:text-[34px] font-semibold tracking-[-0.03em] leading-[1.15] text-[#141414]">
+                        Build it clean.<br />
+                        Ship it bold
+                        <span class="inline-flex items-center justify-center align-middle ml-1 w-8 h-8 rounded-full bg-[#141414] text-white text-[14px] -rotate-6">
+                            <i class="fa-solid fa-terminal"></i>
+                        </span>
+                    </h2>
+
+                    <div class="mt-8 text-[12px] text-[#52525b] leading-relaxed">
+                        <p>© 2026 Ekuivalen. All rights reserved.</p>
+                        <p>Crafted with care by <span class="font-semibold text-[#141414]">Ekuivalen</span></p>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: 4 Kolom Menu Navigasi -->
+                <div class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-8 text-[13px]">
+
+                    <!-- Kolom 1: Explore -->
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">
+                            EXPLORE
+                        </p>
+                        <ul class="space-y-2.5 text-[#3f3f46] font-medium">
+                            <li><a href="index.html" class="hover:text-[#09090b] transition-colors">Home</a></li>
+                            <li><a href="blog.html" class="hover:text-[#09090b] transition-colors">Blog</a></li>
+                            <li><a href="index.html#portfolio" class="hover:text-[#09090b] transition-colors">Projects</a></li>
+                            <li><a href="index.html#about" class="hover:text-[#09090b] transition-colors">About</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Kolom 2: Works -->
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">
+                            WORKS
+                        </p>
+                        <ul class="space-y-2.5 text-[#3f3f46] font-medium">
+                            <li><a href="index.html#portfolio" class="hover:text-[#09090b] transition-colors">Web Apps</a></li>
+                            <li><a href="index.html#video" class="hover:text-[#09090b] transition-colors">Latest Video</a></li>
+                            <li><a href="index.html#products" class="hover:text-[#09090b] transition-colors">Products</a></li>
+                            <li><a href="index.html#products" class="hover:text-[#09090b] transition-colors">Templates</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Kolom 3: Connect -->
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">
+                            CONNECT
+                        </p>
+                        <ul class="space-y-2.5 text-[#3f3f46] font-medium">
+                            <li><a href="https://github.com/Ekuivalen07" target="_blank" rel="noopener noreferrer" class="hover:text-[#09090b] transition-colors">GitHub</a></li>
+                            <li><a href="index.html#video" class="hover:text-[#09090b] transition-colors">YouTube</a></li>
+                            <li><a href="index.html#about" class="hover:text-[#09090b] transition-colors">LinkedIn</a></li>
+                            <li><a href="index.html#portfolio" class="hover:text-[#09090b] transition-colors">Instagram</a></li>
+                            <li><a href="mailto:business@adplay.id" class="hover:text-[#09090b] transition-colors">Email</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Kolom 4: Info -->
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">
+                            INFO
+                        </p>
+                        <ul class="space-y-2.5 text-[#3f3f46] font-medium">
+                            <li><a href="index.html#contact" class="hover:text-[#09090b] transition-colors">Inquiry / Collab</a></li>
+                            <li><a href="#newsletter" onclick="showNewsletterToast(event)" class="hover:text-[#09090b] transition-colors">Newsletter</a></li>
+                            <li><a href="index.html#about" class="hover:text-[#09090b] transition-colors">Experience</a></li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Bagian Bawah: Tipografi Raksasa "Ekuivalen" + Stiker Monokrom -->
+        <div class="relative z-10 w-full mt-16 sm:mt-24 flex justify-center select-none pointer-events-none">
+            <div class="relative inline-block px-2">
+
+                <!-- Teks Raksasa Putih -->
+                <span class="block font-black text-white text-[18.5vw] lg:text-[17vw] xl:text-[210px] tracking-[-0.045em] leading-[0.76] translate-y-[10%]">
+                    Ekuivalen
+                </span>
+
+                <!-- Dekorasi Stiker Monokrom (Hapus blok ini jika ingin teks polos saja) -->
+                <span class="hidden sm:flex absolute -top-4 left-[3%] w-11 h-11 md:w-14 md:h-14 rounded-2xl bg-[#141414] text-white border-2 border-white shadow-xl items-center justify-center text-lg md:text-2xl -rotate-12">
+                    <i class="fa-solid fa-code"></i>
+                </span>
+                <span class="hidden sm:flex absolute -top-7 left-[44%] w-10 h-10 md:w-12 md:h-12 rounded-full bg-white text-[#141414] border-2 border-[#141414] shadow-xl items-center justify-center text-base md:text-xl rotate-12">
+                    <i class="fa-brands fa-laravel"></i>
+                </span>
+                <span class="hidden sm:flex absolute top-[28%] right-[24%] w-10 h-10 md:w-12 md:h-12 rounded-xl bg-[#141414] text-white border-2 border-white shadow-xl items-center justify-center text-base md:text-lg rotate-6">
+                    <i class="fa-solid fa-bolt"></i>
+                </span>
+                <span class="hidden sm:flex absolute -top-3 right-[5%] w-11 h-11 md:w-14 md:h-14 rounded-2xl bg-white text-[#141414] border-2 border-[#141414] shadow-xl items-center justify-center text-lg md:text-2xl -rotate-6">
+                    <i class="fa-brands fa-github"></i>
+                </span>
+
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toastBox" class="fixed bottom-6 right-6 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-300 bg-[#141414] text-white text-[13px] font-medium px-5 py-3 rounded-full shadow-xl border border-white/10 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="toastMessage">Berhasil!</span>
+    </div>
+
+    <!-- ========================================================================
+         JAVASCRIPT: AUTO-TOC, ANIMASI NAVBAR & INTERAKSI
+         ======================================================================== -->
+    <script>
+        // 1. Buat Daftar Isi ("ISI ARTIKEL") Otomatis dari semua tag <h2> di dalam #articleBody
+        function buildTableOfContents() {
+            const tocList = document.getElementById('tocList');
+            const headings = document.querySelectorAll('#articleBody h2');
+            tocList.innerHTML = '';
+
+            if (headings.length === 0) return;
+
+            headings.forEach((heading, index) => {
+                if (!heading.id) {
+                    heading.id = `section-${index + 1}`;
+                }
+                const link = document.createElement('a');
+                link.href = `#${heading.id}`;
+                link.textContent = heading.textContent;
+                link.className = index === 0 ? 'toc-link active' : 'toc-link';
+                link.dataset.target = heading.id;
+                tocList.appendChild(link);
+            });
+
+            const tocLinks = document.querySelectorAll('.toc-link');
+
+            function updateActiveToc() {
+                let currentId = headings[0].id;
+                headings.forEach((heading) => {
+                    const top = heading.getBoundingClientRect().top;
+                    if (top <= 140) {
+                        currentId = heading.id;
+                    }
+                });
+
+                tocLinks.forEach((link) => {
+                    if (link.dataset.target === currentId) {
+                        link.classList.add('active');
+                    } else {
+                        link.classList.remove('active');
+                    }
+                });
+            }
+
+            window.addEventListener('scroll', updateActiveToc, { passive: true });
+            updateActiveToc();
+        }
+
+        // 2. Animasi Sticky Navbar saat di-scroll
+        const navbarWrapper = document.getElementById('navbarWrapper');
+        function handleNavbarScroll() {
+            if (window.scrollY > 30) {
+                navbarWrapper.classList.add('is-scrolled');
+            } else {
+                navbarWrapper.classList.remove('is-scrolled');
+            }
+        }
+        window.addEventListener('scroll', handleNavbarScroll, { passive: true });
+        window.addEventListener('load', () => {
+            handleNavbarScroll();
+            buildTableOfContents();
+        });
+
+        // 3. Toast Notification, Newsletter & Copy Link
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('toastBox');
+            const msg = document.getElementById('toastMessage');
+            msg.textContent = message;
+
+            toast.classList.remove('opacity-0', 'translate-y-3');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-3');
+            }, 2800);
+        }
+
+        function handleNewsletterSubmit(e) {
+            e.preventDefault();
+            document.getElementById('newsletterEmailInput').value = '';
+            showToast('Terima kasih! Email Anda telah terdaftar di Newsletter.');
+        }
+
+        function showNewsletterToast(e) {
+            e.preventDefault();
+            showToast('Terima kasih! Anda telah masuk daftar Newsletter.');
+        }
+
+        function shareArticle() {
+            navigator.clipboard.writeText(window.location.href).then(() => {
+                showToast('Link artikel berhasil disalin!');
+            }).catch(() => {
+                showToast('Gagal menyalin link.');
+            });
+        }
+    </script>
+</body>
+</html>

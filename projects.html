@@ -1,0 +1,1491 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Projects — Ekuivalen</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Instrument Serif, Inter, JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+
+    <!-- GSAP (Animasi 3D Buka Buku & Balik Halaman Smooth) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        serif: ['"Instrument Serif"', 'Georgia', 'serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        archiveBg: '#121214',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #121214;
+            color: #ffffff;
+            overflow-x: clip;
+        }
+
+        /* ==========================================================================
+           DARK ANIMATED STICKY NAVBAR (Pendek di atas -> Panjang saat di-scroll)
+           ========================================================================== */
+        .navbar-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 60;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            transition: padding 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            padding-top: 18px;
+        }
+        .navbar-inner {
+            pointer-events: auto;
+            width: 92%;
+            max-width: 690px;
+            background: rgba(24, 24, 27, 0.86);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 9999px;
+            padding: 9px 12px 9px 26px;
+            box-shadow: 0 12px 36px rgba(0, 0, 0, 0.45);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                        width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                        border-radius 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                        padding 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                        box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                        background-color 0.45s ease;
+        }
+        .navbar-wrapper.is-scrolled {
+            padding-top: 0px;
+        }
+        .navbar-wrapper.is-scrolled .navbar-inner {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 0px;
+            background: rgba(18, 18, 20, 0.96);
+            padding: 14px max(2rem, calc((100vw - 1140px) / 2));
+            box-shadow: 0 1px 0px rgba(255, 255, 255, 0.08);
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        /* ==========================================================================
+           STACKED ARCHIVE FOLDERS (Tumpukan 10 Folder Warna-Warni)
+           ========================================================================== */
+        .folder-stack {
+            position: relative;
+            width: 100%;
+            max-width: 1020px;
+            margin: 0 auto;
+        }
+        .folder-item {
+            position: relative;
+            margin-top: -16px;
+            cursor: pointer;
+            transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .folder-item:first-child {
+            margin-top: 0;
+        }
+        .folder-item:hover {
+            transform: translateY(-6px);
+        }
+
+        .folder-tab-row {
+            display: flex;
+            width: 100%;
+            pointer-events: none;
+        }
+        .folder-tab {
+            pointer-events: auto;
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            height: 44px;
+            min-width: 215px;
+            padding: 6px 34px 2px;
+            font-family: 'Instrument Serif', Georgia, serif;
+            font-size: 23px;
+            letter-spacing: 0.01em;
+            line-height: 1;
+            border-top-left-radius: 14px;
+            border-top-right-radius: 14px;
+            clip-path: polygon(14px 0%, calc(100% - 14px) 0%, 100% 100%, 0% 100%);
+            transition: filter 0.25s ease;
+        }
+        @media (max-width: 640px) {
+            .folder-tab {
+                min-width: 165px;
+                height: 38px;
+                padding: 4px 22px 2px;
+                font-size: 19px;
+            }
+        }
+
+        .folder-body {
+            width: 100%;
+            border-top-left-radius: 6px;
+            border-top-right-radius: 6px;
+            box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.35);
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 22px 0fr;
+            transition: grid-template-rows 0.48s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+        .folder-item:hover .folder-body {
+            grid-template-rows: 22px 1fr;
+        }
+        .folder-peek-inner {
+            overflow: hidden;
+        }
+
+        /* ==========================================================================
+           REALISTIC 3D HINGED BOOK / BINDER (Desktop 180° Flip, Mobile Stacked)
+           ========================================================================== */
+        .binder-perspective {
+            perspective: 2500px;
+            perspective-origin: 50% 45%;
+        }
+
+        /* Tekstur Karton Halus pada Sampul Binder */
+        .cardboard-grain {
+            background-image:
+                radial-gradient(rgba(255, 255, 255, 0.06) 0.7px, transparent 0.7px),
+                radial-gradient(rgba(0, 0, 0, 0.08) 0.7px, transparent 0.7px);
+            background-size: 16px 16px;
+            background-position: 0 0, 8px 8px;
+        }
+
+        /* Tekstur Kertas Arsip + Efek Tumpukan Tebal di Tepi Kanan */
+        .archival-paper {
+            background-color: #faf8f3;
+            background-image:
+                radial-gradient(rgba(0, 0, 0, 0.042) 0.75px, transparent 0.75px),
+                linear-gradient(90deg, rgba(0, 0, 0, 0.04) 0px, transparent 22px);
+            background-size: 14px 14px, 100% 100%;
+            box-shadow:
+                2px 0 0 #ece8de,
+                4px 0 0 #d9d4c7,
+                6px 0 0 #c7c1b3,
+                10px 14px 30px rgba(0, 0, 0, 0.28);
+        }
+
+        /* Layout Mobile (< 1024px): Tumpuk Vertikal Bersih */
+        .book-spread {
+            position: relative;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+        .book-cover-leaf {
+            position: relative;
+            width: 100%;
+        }
+        .cover-front {
+            display: none;
+        }
+        .cover-back {
+            position: relative;
+            width: 100%;
+            border-radius: 14px 14px 0 0;
+            padding: 18px;
+        }
+        .book-right-base {
+            position: relative;
+            width: 100%;
+            border-radius: 0 0 14px 14px;
+            padding: 0 18px 18px 18px;
+        }
+        .page-flip-leaf {
+            display: none;
+        }
+
+        /* Layout Desktop (>= 1024px): Fisika Buku 3D 2 Halaman + Sampul 180 Derajat */
+        @media (min-width: 1024px) {
+            .book-spread {
+                display: block;
+                position: relative;
+                width: 100%;
+                min-height: 660px;
+                transform-style: preserve-3d;
+                will-change: transform, opacity;
+            }
+
+            /* Setengah Kanan (Dasar Buku + Kertas Arsip Deskripsi) */
+            .book-right-base {
+                position: relative;
+                width: 50%;
+                margin-left: 50%;
+                min-height: 660px;
+                padding: 26px 28px 26px 20px;
+                border-radius: 0 14px 14px 0;
+                transform: translateZ(0px);
+                box-shadow:
+                    inset 18px 0 26px -14px rgba(0, 0, 0, 0.45),
+                    0 30px 70px rgba(0, 0, 0, 0.55);
+            }
+
+            /* Daun Sampul 3D (Berengsel di Punggung Tengah: left: 50%, origin: left center) */
+            .book-cover-leaf {
+                position: absolute;
+                top: 0;
+                bottom: 0;
+                left: 50%;
+                width: 50%;
+                transform-origin: left center;
+                transform-style: preserve-3d;
+                will-change: transform;
+                z-index: 30;
+            }
+
+            /* Sisi Depan Sampul (Terlihat saat Buku Masih Tertutup) */
+            .cover-front {
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+                position: absolute;
+                inset: 0;
+                padding: 40px 42px 36px 52px;
+                border-radius: 4px 14px 14px 4px;
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+                transform: translateZ(1.5px);
+                box-shadow:
+                    inset 22px 0 24px -16px rgba(0, 0, 0, 0.42),
+                    inset -2px 0 0 rgba(255, 255, 255, 0.14),
+                    0 32px 75px rgba(0, 0, 0, 0.65);
+                overflow: hidden;
+            }
+
+            /* Sisi Dalam Kiri Sampul (Berisi Foto Proyek + Spec Receipt saat Terbuka 180°) */
+            .cover-back {
+                position: absolute;
+                inset: 0;
+                padding: 26px 20px 26px 28px;
+                border-radius: 14px 0 0 14px;
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+                transform: rotateY(180deg) translateZ(1.5px);
+                box-shadow:
+                    inset -18px 0 26px -14px rgba(0, 0, 0, 0.45),
+                    -8px 28px 65px rgba(0, 0, 0, 0.5);
+                display: flex;
+                flex-direction: column;
+                justify-content: space-between;
+            }
+
+            /* Lembar Kertas 3D Tambahan untuk Efek Balik Halaman Antar-Proyek */
+            .page-flip-leaf {
+                display: block;
+                position: absolute;
+                top: 26px;
+                bottom: 26px;
+                left: 50%;
+                width: calc(50% - 28px);
+                transform-origin: left center;
+                transform-style: preserve-3d;
+                pointer-events: none;
+                z-index: 40;
+                opacity: 0;
+                will-change: transform, opacity;
+            }
+            .page-flip-face {
+                position: absolute;
+                inset: 0;
+                border-radius: 3px;
+                backface-visibility: hidden;
+                -webkit-backface-visibility: hidden;
+                background-color: #faf8f3;
+                background-image: radial-gradient(rgba(0, 0, 0, 0.04) 0.75px, transparent 0.75px);
+                background-size: 14px 14px;
+                box-shadow: 0 14px 36px rgba(0, 0, 0, 0.25);
+            }
+            .page-flip-back {
+                transform: rotateY(180deg);
+                background-color: #f3efe6;
+            }
+        }
+
+        /* Kilau Cahaya pada Sampul Depan saat Berputar */
+        .cover-glint {
+            position: absolute;
+            inset: -40%;
+            background: linear-gradient(
+                105deg,
+                rgba(255, 255, 255, 0) 35%,
+                rgba(255, 255, 255, 0.22) 50%,
+                rgba(255, 255, 255, 0) 65%
+            );
+            pointer-events: none;
+            transform: translateX(-85%);
+        }
+
+        /* Tab Samping Vertikal di Tepi Kanan Buku */
+        .side-tab {
+            writing-mode: vertical-rl;
+            text-orientation: mixed;
+            clip-path: polygon(0% 0%, 100% 11px, 100% calc(100% - 11px), 0% 100%);
+            transition: transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), filter 0.25s ease;
+        }
+        .side-tab:hover {
+            transform: translateX(4px);
+            filter: brightness(1.08);
+        }
+        .side-tab.is-active {
+            transform: translateX(6px);
+        }
+
+        /* Efek Sobekan Receipt di Halaman Kiri */
+        .receipt-edge {
+            clip-path: polygon(0% 4%, 8% 0%, 18% 5%, 28% 1%, 39% 5%, 52% 0%, 64% 4%, 76% 0%, 88% 4%, 100% 1%, 100% 100%, 0% 100%);
+        }
+    </style>
+</head>
+<body class="selection:bg-white selection:text-black flex flex-col min-h-screen">
+
+    <!-- ========================================================================
+         DARK STICKY ANIMATED NAVBAR
+         ======================================================================== -->
+    <header id="navbarWrapper" class="navbar-wrapper">
+        <nav class="navbar-inner">
+            <a href="index.html" class="font-bold text-[15px] tracking-tight text-white hover:opacity-80 transition-opacity">
+                Ekuivalen
+            </a>
+
+            <div class="hidden md:flex items-center space-x-8 text-[13.5px] font-medium text-[#a1a1aa]">
+                <a href="blog.html" class="hover:text-white transition-colors">Blog</a>
+                <a href="about.html" class="hover:text-white transition-colors">About</a>
+                <a href="projects.html" class="text-white font-semibold">Projects</a>
+            </div>
+
+            <a href="about.html" class="inline-flex items-center gap-1.5 bg-white/10 hover:bg-white/20 border border-white/10 text-white text-[13px] font-medium px-4 py-2 rounded-full transition-all">
+                <span>Read more</span>
+                <span class="text-[11px] leading-none">↗</span>
+            </a>
+        </nav>
+    </header>
+
+    <!-- ========================================================================
+         VIEW 1: STACKED 10 PROJECT FOLDERS
+         ======================================================================== -->
+    <main id="stackView" class="flex-1 pt-32 md:pt-40 pb-24 px-4 sm:px-8">
+        <div class="max-w-[1020px] mx-auto">
+
+            <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-12 md:mb-14">
+                <div>
+                    <p class="font-mono text-[11px] tracking-[0.06em] text-[#71717a] mb-2">
+                        Selected Works <span class="mx-1.5 text-[#3f3f46]">/</span> Archive Entries
+                    </p>
+                    <h1 class="font-serif text-[52px] sm:text-[68px] font-normal tracking-[-0.015em] leading-[0.98] text-[#f4f4f5]">
+                        Projects 01—10
+                    </h1>
+                </div>
+                <p class="font-mono text-[11px] uppercase tracking-[0.14em] text-[#71717a] sm:text-right">
+                    Hover untuk intip • Klik folder untuk membuka buku
+                </p>
+            </div>
+
+            <!-- Tumpukan 10 Folder -->
+            <div id="folderStack" class="folder-stack pb-6"></div>
+
+        </div>
+    </main>
+
+    <!-- ========================================================================
+         VIEW 2: REALISTIC 3D OPEN BOOK / BINDER OVERLAY (Diperlebar ke 1220px)
+         ======================================================================== -->
+    <section id="binderOverlay" class="fixed inset-0 z-[70] hidden overflow-y-auto bg-[#0d0d0f]/95 backdrop-blur-md">
+        <div class="min-h-screen w-full px-4 sm:px-8 pt-24 pb-20 flex flex-col items-center">
+
+            <!-- Header di Atas Buku -->
+            <div id="binderHeader" class="w-full max-w-[1220px] flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-8">
+                <div>
+                    <div class="flex items-center gap-2 font-mono text-[11px] text-[#71717a] mb-2">
+                        <button onclick="closeBinder()" class="inline-flex items-center gap-1.5 text-[#d4d4d8] hover:text-white transition-colors cursor-pointer">
+                            <span>←</span>
+                            <span>Selected Works</span>
+                        </button>
+                        <span class="text-[#3f3f46]">/</span>
+                        <span id="openBreadcrumbCode" class="text-[#a1a1aa]">Project 01</span>
+                    </div>
+                    <h2 id="openBigTitle" class="font-serif text-[44px] sm:text-[62px] leading-[0.98] text-[#f4f4f5] tracking-[-0.015em]">
+                        TUT.EDU Platform
+                    </h2>
+                </div>
+
+                <div class="flex items-center gap-4 self-start sm:self-end">
+                    <div class="hidden md:block text-right font-mono text-[10.5px] leading-relaxed text-[#71717a] max-w-[200px]">
+                        <p id="openMetaRole">Full-Stack Developer</p>
+                        <p id="openMetaDate" class="text-[#a1a1aa]">Okt 2026</p>
+                    </div>
+                    <button onclick="closeBinder()" class="inline-flex items-center gap-2 bg-white/10 hover:bg-white/20 border border-white/15 text-white text-[12.5px] font-medium px-4 py-2 rounded-full transition-colors cursor-pointer">
+                        <i class="fa-solid fa-xmark text-[13px]"></i>
+                        <span>Tutup Buku</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Stage Perspektif 3D Buku -->
+            <div class="binder-perspective w-full max-w-[1220px] lg:pr-10 py-2">
+                <div id="bookSpread" class="book-spread">
+
+                    <!-- ========================================================
+                         DAUN SAMPUL 3D (Tertutup di Kanan -> Berayun 180° ke Kiri)
+                         ======================================================== -->
+                    <div id="bookCoverLeaf" class="book-cover-leaf">
+
+                        <!-- SISI DEPAN SAMPUL (Tampil saat Buku Masih Tertutup) -->
+                        <div id="coverFront" class="cover-front cardboard-grain" style="background-color: #830e4f; color: #ffffff;">
+                            <!-- Garis Tekukan Punggung Buku (Spine Crease) -->
+                            <div class="pointer-events-none absolute inset-y-0 left-7 w-px bg-black/25"></div>
+                            <div class="pointer-events-none absolute inset-y-0 left-[29px] w-px bg-white/15"></div>
+
+                            <!-- Kilau Cahaya Bergerak saat Sampul Berputar -->
+                            <div id="coverGlint" class="cover-glint"></div>
+
+                            <!-- Bagian Atas Sampul Depan -->
+                            <div class="relative z-10 flex items-center justify-between font-mono text-[11px] opacity-80">
+                                <span id="coverFrontCode" class="border border-current/40 px-2.5 py-0.5">File #01</span>
+                                <span id="coverFrontDate">OKT 2026</span>
+                            </div>
+
+                            <!-- Judul Besar di Tengah Sampul -->
+                            <div class="relative z-10 my-auto py-8">
+                                <p id="coverFrontCategory" class="font-mono text-[10.5px] uppercase tracking-[0.22em] opacity-75 mb-3">
+                                    WEB PLATFORM
+                                </p>
+                                <h3 id="coverFrontTitle" class="font-serif italic text-[54px] leading-[1.02] tracking-[-0.01em]">
+                                    TUT.EDU Platform
+                                </h3>
+                                <div class="mt-6 w-14 h-[2px] bg-current opacity-40"></div>
+                                <p id="coverFrontPeek" class="mt-5 text-[14px] leading-relaxed opacity-85 max-w-[360px]">
+                                    Platform pembelajaran IT dan portofolio digital.
+                                </p>
+                            </div>
+
+                            <!-- Bagian Bawah Sampul Depan -->
+                            <div class="relative z-10 pt-5 border-t border-current/20 flex items-center justify-between font-mono text-[10.5px] uppercase tracking-[0.14em] opacity-75">
+                                <span>EKUIVALEN ARCHIVE</span>
+                                <span>OPENING DOSSIER →</span>
+                            </div>
+                        </div>
+
+                        <!-- SISI DALAM KIRI SAMPUL (Foto Proyek + Spec Receipt) -->
+                        <div id="coverBack" class="cover-back cardboard-grain" style="background-color: #830e4f;">
+                            <div class="flex flex-col justify-between h-full gap-5">
+
+                                <!-- Bingkai Foto Proyek -->
+                                <div class="group relative bg-[#faf8f3] p-3.5 sm:p-4 rounded-[5px] shadow-[0_14px_34px_rgba(0,0,0,0.3)]">
+                                    <div class="flex items-center justify-between mb-2.5 px-0.5">
+                                        <span id="openPhotoCaption" class="font-mono text-[10.5px] uppercase tracking-[0.12em] text-[#52525b]">
+                                            VISUAL PREVIEW
+                                        </span>
+                                        <span id="openLeftFileTag" class="font-mono text-[10px] text-[#3f3f46] border border-[#3f3f46]/40 px-2 py-0.5">
+                                            File #01
+                                        </span>
+                                    </div>
+
+                                    <!-- Foto Proyek -->
+                                    <div onclick="openImageZoom()" class="relative w-full aspect-[16/10] overflow-hidden rounded-[3px] bg-[#18181b] cursor-zoom-in">
+                                        <img
+                                            id="openProjectImage"
+                                            src=""
+                                            alt="Project Preview"
+                                            class="w-full h-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
+                                        />
+                                        <div class="absolute bottom-2.5 right-2.5 bg-black/70 backdrop-blur-sm text-white text-[10.5px] font-mono px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity flex items-center gap-1.5">
+                                            <i class="fa-solid fa-up-right-and-down-left-from-center text-[9px]"></i>
+                                            <span>Perbesar</span>
+                                        </div>
+                                    </div>
+
+                                    <div class="mt-2.5 flex items-center justify-between font-mono text-[9.5px] text-[#71717a] px-0.5">
+                                        <span id="openPhotoCategory">WEB PLATFORM</span>
+                                        <span>EKUIVALEN ARCHIVE</span>
+                                    </div>
+                                </div>
+
+                                <!-- Kartu Receipt Kuning (Tech Stack & Tautan) -->
+                                <div class="relative max-w-[380px] w-full mx-auto">
+                                    <div class="pointer-events-none absolute -top-3 right-5 z-20 text-[#27272a] text-[22px] rotate-[28deg]">
+                                        <i class="fa-solid fa-paperclip"></i>
+                                    </div>
+
+                                    <div class="receipt-edge bg-[#f7e778] text-[#18181b] px-5 pt-6 pb-4 shadow-[0_12px_28px_rgba(0,0,0,0.3)] -rotate-[1.1deg]">
+                                        <div class="flex items-center justify-between border-b border-dashed border-black/25 pb-2 mb-2.5">
+                                            <span class="font-mono font-bold text-[11.5px] tracking-[0.14em] uppercase">PROJECT SPEC</span>
+                                            <span id="openSpecYear" class="font-mono text-[10.5px] text-black/70">2026</span>
+                                        </div>
+
+                                        <div class="space-y-1 font-mono text-[10.5px] mb-3">
+                                            <div class="flex justify-between gap-3">
+                                                <span class="text-black/60">STATUS</span>
+                                                <span id="openSpecStatus" class="font-semibold text-right">Completed</span>
+                                            </div>
+                                            <div class="flex justify-between gap-3">
+                                                <span class="text-black/60">ROLE</span>
+                                                <span id="openSpecRole" class="font-semibold text-right">Full-Stack Dev</span>
+                                            </div>
+                                        </div>
+
+                                        <div id="openTechStack" class="flex flex-wrap gap-1.5 mb-3.5"></div>
+
+                                        <div class="pt-2.5 border-t border-dashed border-black/25 flex items-center justify-between gap-2">
+                                            <a id="openGithubBtn" href="https://github.com/Ekuivalen07" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1.5 text-[11px] font-mono font-semibold text-[#18181b] hover:opacity-70 transition-opacity">
+                                                <i class="fa-brands fa-github text-[13px]"></i>
+                                                <span>Repository</span>
+                                            </a>
+                                            <a href="index.html#contact" class="inline-flex items-center gap-1 bg-[#18181b] hover:bg-black text-white text-[10.5px] font-mono font-medium px-3 py-1.5 rounded-full transition-colors">
+                                                <span>Tanya Proyek</span>
+                                                <span>↗</span>
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================================
+                         LEMBAR KERTAS 3D (Efek Balik Halaman saat Ganti Proyek)
+                         ======================================================== -->
+                    <div id="pageFlipLeaf" class="page-flip-leaf">
+                        <div class="page-flip-face">
+                            <div class="absolute inset-0 bg-gradient-to-r from-black/10 via-transparent to-black/5"></div>
+                        </div>
+                        <div class="page-flip-face page-flip-back">
+                            <div class="absolute inset-0 bg-gradient-to-l from-black/12 via-transparent to-transparent"></div>
+                        </div>
+                    </div>
+
+                    <!-- ========================================================
+                         SETENGAH KANAN: KERTAS ARSIP PUTIH (RINGKASAN & DESKRIPSI)
+                         ======================================================== -->
+                    <div id="bookRightBase" class="book-right-base cardboard-grain" style="background-color: #830e4f;">
+
+                        <!-- Bayangan Sampul Jatuh di Atas Halaman Kanan (Memudar saat Dibuka) -->
+                        <div id="rightPageShadow" class="pointer-events-none hidden lg:block absolute inset-0 z-20 rounded-r-[14px] bg-gradient-to-r from-black/75 via-black/45 to-black/10 opacity-0"></div>
+
+                        <!-- Kertas Arsip Putih (Padding Kiri Aman dari Garis Margin & Lubang Binder) -->
+                        <div class="archival-paper text-[#1c1917] rounded-[3px] relative py-6 pr-6 pl-14 sm:py-8 sm:pr-8 sm:pl-16 md:py-9 md:pr-10 md:pl-[74px] flex flex-col justify-between h-full min-h-[540px] lg:min-h-[608px]">
+
+                            <!-- Lubang Binder di Tepi Kiri Kertas -->
+                            <div class="pointer-events-none absolute inset-y-8 left-3.5 sm:left-4 flex flex-col justify-between items-center">
+                                <span class="binder-hole w-3.5 h-3.5 rounded-full shadow-inner transition-colors duration-500" style="background-color: #830e4f;"></span>
+                                <span class="binder-hole w-3.5 h-3.5 rounded-full shadow-inner transition-colors duration-500" style="background-color: #830e4f;"></span>
+                                <span class="binder-hole w-3.5 h-3.5 rounded-full shadow-inner transition-colors duration-500" style="background-color: #830e4f;"></span>
+                                <span class="binder-hole w-3.5 h-3.5 rounded-full shadow-inner transition-colors duration-500" style="background-color: #830e4f;"></span>
+                                <span class="binder-hole w-3.5 h-3.5 rounded-full shadow-inner transition-colors duration-500" style="background-color: #830e4f;"></span>
+                            </div>
+
+                            <!-- Garis Margin Kiri -->
+                            <div class="pointer-events-none absolute inset-y-0 left-10 sm:left-11 md:left-12 border-r border-black/[0.08]"></div>
+
+                            <div>
+                                <!-- Catatan Atas & Stempel Nomor File -->
+                                <div class="flex items-start justify-between gap-4 mb-4">
+                                    <p id="openPaperNote" class="font-mono text-[10px] leading-relaxed text-[#78716c] max-w-[180px]">
+                                        Entry 01 of 10.<br />Web Platform • Okt 2026.
+                                    </p>
+                                    <span id="openRightFileTag" class="font-mono text-[10.5px] font-medium text-[#1c1917] border border-[#1c1917]/40 px-2.5 py-0.5 shrink-0">
+                                        File #01
+                                    </span>
+                                </div>
+
+                                <!-- Judul Serif Miring -->
+                                <h3 id="openPaperTitle" class="font-serif italic text-[42px] sm:text-[50px] leading-[1.02] text-[#141414] mb-5">
+                                    TUT.EDU Platform
+                                </h3>
+
+                                <!-- 01. Ringkasan -->
+                                <div class="mb-5">
+                                    <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-[#78716c] mb-1.5">
+                                        01 — RINGKASAN PROYEK
+                                    </p>
+                                    <p id="openSummary" class="text-[15px] sm:text-[16px] font-medium text-[#292524] leading-[1.66]"></p>
+                                </div>
+
+                                <!-- 02. Deskripsi -->
+                                <div class="mb-5">
+                                    <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-[#78716c] mb-1.5">
+                                        02 — DESKRIPSI &amp; PROSES
+                                    </p>
+                                    <p id="openDescription" class="text-[14px] sm:text-[14.5px] text-[#44403c] leading-[1.76]"></p>
+                                </div>
+
+                                <!-- 03. Poin Utama -->
+                                <div>
+                                    <p class="font-mono text-[10px] uppercase tracking-[0.18em] text-[#78716c] mb-2">
+                                        03 — POIN UTAMA
+                                    </p>
+                                    <ul id="openHighlights" class="space-y-1.5 text-[13.5px] text-[#44403c] list-disc pl-4 leading-relaxed"></ul>
+                                </div>
+                            </div>
+
+                            <!-- Navigasi Prev / Next -->
+                            <div class="mt-6 pt-3.5 border-t border-black/10 flex items-center justify-between text-[11.5px] font-mono">
+                                <button onclick="switchProject(-1)" class="inline-flex items-center gap-1.5 text-[#57534e] hover:text-[#141414] transition-colors cursor-pointer">
+                                    <span>←</span>
+                                    <span>Sebelumnya</span>
+                                </button>
+                                <span id="openPageCounter" class="text-[#a8a29e]">01 / 10</span>
+                                <button onclick="switchProject(1)" class="inline-flex items-center gap-1.5 text-[#57534e] hover:text-[#141414] transition-colors cursor-pointer">
+                                    <span>Berikutnya</span>
+                                    <span>→</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Tab Vertikal di Sisi Kanan Buku (Menempel Langsung ke Tepi Kanan Binder) -->
+                        <div id="binderSideTabs" class="hidden lg:flex flex-col gap-2 absolute left-full top-6 -ml-px z-10"></div>
+
+                    </div>
+
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- ========================================================================
+         LIGHTBOX ZOOM FOTO PROYEK
+         ======================================================================== -->
+    <div id="imageZoomModal" class="fixed inset-0 z-[90] hidden items-center justify-center bg-black/90 backdrop-blur-md p-4 sm:p-8" onclick="closeImageZoom()">
+        <div class="relative max-w-[960px] w-full" onclick="event.stopPropagation()">
+            <button onclick="closeImageZoom()" class="absolute -top-11 right-0 text-white/80 hover:text-white text-[13.5px] font-mono inline-flex items-center gap-2 cursor-pointer">
+                <span>Tutup [ESC]</span>
+                <i class="fa-solid fa-xmark text-base"></i>
+            </button>
+            <img id="zoomedImg" src="" alt="Zoomed Project" class="w-full max-h-[82vh] object-contain rounded-xl border border-white/15 shadow-2xl bg-[#18181b]" />
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         FOOTER MONOKROM
+         ======================================================================== -->
+    <footer class="relative overflow-hidden bg-[#09090b] pt-20 sm:pt-24 text-white border-t border-white/[0.08]">
+        <div class="relative z-10 max-w-[1060px] mx-auto px-6 sm:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">
+                <div class="lg:col-span-5 flex flex-col justify-between">
+                    <h2 class="text-[28px] sm:text-[34px] font-semibold tracking-[-0.03em] leading-[1.15] text-white">
+                        Build it clean.<br />
+                        Ship it bold
+                        <span class="inline-flex items-center justify-center align-middle ml-1 w-8 h-8 rounded-full bg-white text-[#09090b] text-[14px] -rotate-6">
+                            <i class="fa-solid fa-terminal"></i>
+                        </span>
+                    </h2>
+
+                    <div class="mt-8 text-[12px] text-[#71717a] leading-relaxed">
+                        <p>© 2026 Ekuivalen. All rights reserved.</p>
+                        <p>Crafted with care by <span class="font-semibold text-white">Ekuivalen</span></p>
+                    </div>
+                </div>
+
+                <div class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-8 text-[13px]">
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">EXPLORE</p>
+                        <ul class="space-y-2.5 text-[#a1a1aa] font-medium">
+                            <li><a href="index.html" class="hover:text-white transition-colors">Home</a></li>
+                            <li><a href="blog.html" class="hover:text-white transition-colors">Blog</a></li>
+                            <li><a href="about.html" class="hover:text-white transition-colors">About</a></li>
+                            <li><a href="projects.html" class="hover:text-white transition-colors">Projects</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">WORKS</p>
+                        <ul class="space-y-2.5 text-[#a1a1aa] font-medium">
+                            <li><a href="projects.html" class="hover:text-white transition-colors">All 10 Projects</a></li>
+                            <li><a href="index.html#video" class="hover:text-white transition-colors">Latest Video</a></li>
+                            <li><a href="about.html#certificatesSection" class="hover:text-white transition-colors">Certificates</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">CONNECT</p>
+                        <ul class="space-y-2.5 text-[#a1a1aa] font-medium">
+                            <li><a href="https://github.com/Ekuivalen07" target="_blank" rel="noopener noreferrer" class="hover:text-white transition-colors">GitHub</a></li>
+                            <li><a href="index.html#video" class="hover:text-white transition-colors">YouTube</a></li>
+                            <li><a href="about.html" class="hover:text-white transition-colors">LinkedIn</a></li>
+                            <li><a href="mailto:business@adplay.id" class="hover:text-white transition-colors">Email</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">INFO</p>
+                        <ul class="space-y-2.5 text-[#a1a1aa] font-medium">
+                            <li><a href="index.html#contact" class="hover:text-white transition-colors">Inquiry / Collab</a></li>
+                            <li><a href="blog.html" class="hover:text-white transition-colors">Articles</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="relative z-10 w-full mt-16 sm:mt-20 flex justify-center select-none pointer-events-none">
+            <span class="block font-black text-white/95 text-[18.5vw] lg:text-[17vw] xl:text-[210px] tracking-[-0.045em] leading-[0.76] translate-y-[10%]">
+                Ekuivalen
+            </span>
+        </div>
+    </footer>
+
+    <!-- ========================================================================
+         JAVASCRIPT: DATA 10 PROYEK, RENDER STACK & FISIKA 3D BUKA BUKU
+         ======================================================================== -->
+    <script>
+        /* --------------------------------------------------------------------
+           1. DATA 10 PROYEK
+           -------------------------------------------------------------------- */
+        const projectsData = [
+            {
+                id: "01",
+                code: "File #01",
+                title: "DevBlog.",
+                category: "Blog & CMS Platform",
+                date: "Oct 2026",
+                year: "2026",
+                role: "Full-Stack Developer",
+                status: "Completed",
+                color: "#5b21b6",
+                textColor: "#ffffff",
+                tabAlign: "left",
+                image: "project/prj1.png",
+                fallbackImage: "https://images.unsplash.com/photo-1499750310107-5fef28a66643?auto=format&fit=crop&w=1000&q=85",
+                peekText: "A knowledge-sharing space for practical coding guides, tutorials, and modern software development insights.",
+                summary: "DevBlog is a tech blog and tutorial platform built as a dedicated space for sharing practical guides, coding articles, and modern software development tips.",
+                description: "Designed with a clean white-and-purple interface tailored for comfortable long-form reading. It features instant article search, structured category filtering (Technology, Web Development, Laravel Tips, Design & UI, Productivity) with live post counters, popular topic tags, and article cards displaying author details and view counts.",
+                highlights: [
+                    "Live article search and category filter sidebar complete with post counters.",
+                    "Popular topic tags (#Laravel, #Livewire, #TailwindCSS, #PHP) for quick content discovery.",
+                    "Clean article cards featuring category badges, author metadata, view counts, and user login."
+                ],
+                stack: ["Laravel", "Livewire", "Tailwind CSS", "PHP"],
+                github: "https://github.com/Ekuivalen07"
+            },
+            {
+                id: "02",
+                code: "File #02",
+                title: "E-Report System",
+                category: "Public Service",
+                date: "Nov 2026",
+                year: "2026",
+                role: "Full-Stack Developer",
+                status: "Completed",
+                color: "#18181b",
+                textColor: "#ffffff",
+                tabAlign: "center",
+                image: "project/prj2.png",
+                fallbackImage: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&w=1000&q=85",
+                peekText: "A Neo-Brutalist civic aspiration platform for reporting public facility issues quickly and transparently.",
+                summary: "E-Report is a public complaint web application that enables citizens to report neighborhood and public facility issues quickly, directly, and transparently.",
+                description: "Built with a bold monochrome Neo-Brutalist aesthetic featuring thick borders and high-contrast typography so users stay focused on taking action. Includes separate authentication and dashboards for citizens and administrators, report submissions with supporting evidence, and transparent status tracking to ensure no complaint goes ignored.",
+                highlights: [
+                    "High-contrast monochrome Neo-Brutalist UI with sharp borders and decisive typography.",
+                    "Role-based authentication and dedicated dashboards for citizen reporters and admin reviewers.",
+                    "Structured public facility reporting workflow with transparent progress tracking."
+                ],
+                stack: ["Laravel 13", "Livewire", "Tailwind CSS", "MySQL"],
+                github: "https://github.com/Ekuivalen07/Project-Ereport-Ekuivalen-Muhammad-Firdaus-260558302003"
+            },
+            {
+                id: "03",
+                code: "File #03",
+                title: "Weboo.",
+                category: "Storytelling Platform",
+                date: "Nov 2026",
+                year: "2026",
+                role: "Lead Developer",
+                status: "Completed",
+                color: "#ea580c",
+                textColor: "#ffffff",
+                tabAlign: "left",
+                image: "project/prj3.png",
+                fallbackImage: "https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?auto=format&fit=crop&w=1000&q=85",
+                peekText: "An open-storytelling platform where readers discover fiction and non-fiction works from community authors.",
+                summary: "Weboo is an open-storytelling web platform connecting readers with fiction and non-fiction works while giving writers a dedicated space to publish and share their stories.",
+                description: "Styled with a distinctive warm-orange and charcoal palette. It features real-time story and author search, a browse navigation menu, dynamic category filtering across newly published picks, an author studio for managing books and chapters, and an interactive reading experience built collaboratively with a four-person team.",
+                highlights: [
+                    "Instant story and author search alongside dynamic category filtering on the catalog.",
+                    "Author Studio for creating, organizing, and publishing multi-chapter fiction and non-fiction.",
+                    "Interactive Livewire reading experience backed by a relational MySQL database."
+                ],
+                stack: ["Laravel", "Livewire", "MySQL", "Tailwind CSS"],
+                github: "https://github.com/Ekuivalen07"
+            },
+            {
+                id: "04",
+                code: "File #04",
+                title: "SDN Karangtengah 02",
+                category: "School Web Portal",
+                date: "Nov 2026",
+                year: "2026",
+                role: "Web Developer",
+                status: "Completed",
+                color: "#1d4ed8",
+                textColor: "#ffffff",
+                tabAlign: "right",
+                image: "project/prj4.png",
+                fallbackImage: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&w=1000&q=85",
+                peekText: "An official school web portal with a clean blue-and-white theme for profiles, news, achievements, and galleries.",
+                summary: "The official web portal for SDN Karangtengah 02 presenting school profiles, student achievements, campus news, and photo galleries in an accessible, welcoming layout.",
+                description: "Developed with a crisp blue-and-white theme and an inviting classroom hero banner. Includes structured navigation (Home, Profile, Achievements, News, Gallery) plus authentication and a self-managed admin dashboard so school staff can update institutional details, publish articles, log achievements, and upload gallery photos with custom captions.",
+                highlights: [
+                    "Clear navigation covering Home, Profile, Achievements, News, Gallery, and Login/Register.",
+                    "Admin dashboard for managing school profiles, news updates, achievements, and gallery uploads.",
+                    "Responsive blue-and-white design built for parents, students, and the local community."
+                ],
+                stack: ["Laravel", "Blade", "MySQL", "Tailwind CSS"],
+                github: "https://github.com/Ekuivalen07"
+            },
+            {
+                id: "05",
+                code: "File #05",
+                title: "TUT IT.EDU Landing",
+                category: "EdTech Landing Page",
+                date: "Sep 2026",
+                year: "2026",
+                role: "UI/UX & Frontend Dev",
+                status: "Completed",
+                color: "#047857",
+                textColor: "#ffffff",
+                tabAlign: "left",
+                image: "project/prj5.png",
+                fallbackImage: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1000&q=85",
+                peekText: "An IT & Tech Engineering online bootcamp landing page featuring industry-grade tracks and a free sandbox.",
+                summary: "A conversion-focused landing page for an IT & Tech Engineering online class covering Software Development, AI, Cloud, and UI/UX with a hands-on project curriculum.",
+                description: "Crafted with an editorial modern layout pairing electric blue, lime-green accents, and crisp white cards to capture prospective learners' attention. Highlights open batch announcements, category and case-study navigation, a free 7-day Sandbox Code Editor & mentorship trial card, and real-world project showcases.",
+                highlights: [
+                    "Vibrant hero layout with active batch status badges and direct class-selection CTAs.",
+                    "Dedicated promo highlight for free Sandbox Code Editor access and 7-day mentorship.",
+                    "Fresh visual hierarchy centered around 100% real-project engineering education."
+                ],
+                stack: ["HTML5", "Tailwind CSS", "JavaScript", "UI Design"],
+                github: "https://github.com/Ekuivalen07"
+            },
+            {
+                id: "06",
+                code: "File #06",
+                title: "Portofolio 1.0",
+                category: "Personal Portfolio",
+                date: "Oct 2026",
+                year: "2026",
+                role: "Designer & Developer",
+                status: "Completed",
+                color: "#830e4f",
+                textColor: "#ffffff",
+                tabAlign: "center",
+                image: "project/prj6.png",
+                fallbackImage: "https://images.unsplash.com/photo-1507238691740-187a5b1d37b8?auto=format&fit=crop&w=1000&q=85",
+                peekText: "A first-generation personal portfolio featuring a playful welcome interaction and minimalist navigation.",
+                summary: "My first-generation personal portfolio website introducing my profile, resume, background, and work through a lighthearted, curiosity-driven welcome screen.",
+                description: "Built around a full-bleed background photograph with a subtle dark overlay so the bold centered headline stands out cleanly. Features a minimal top navigation bar with a profile avatar and links to Home, Resume, About, and Portfolio, paired with a playful 'Don't Press' button as a memorable personal touch.",
+                highlights: [
+                    "Full-viewport hero screen with bold welcome typography and a playful interactive CTA.",
+                    "Minimalist top header linking Home, Resume, About, and Portfolio sections.",
+                    "Early exploration of personal web branding and clean responsive layout structure."
+                ],
+                stack: ["HTML5", "CSS3", "JavaScript", "Responsive UI"],
+                github: "https://github.com/Ekuivalen07"
+            },
+            {
+                id: "07",
+                code: "File #07",
+                title: "3D Space-Shooter Quiz",
+                category: "3D Educational Game",
+                date: "Nov 2026",
+                year: "2026",
+                role: "Game Developer",
+                status: "Completed",
+                color: "#f4d81c",
+                textColor: "#141414",
+                tabAlign: "left",
+                image: "project/prj7.png",
+                fallbackImage: "https://images.unsplash.com/photo-1451187580459-43490279c0fa?auto=format&fit=crop&w=1000&q=85",
+                peekText: "A 3D browser space-shooter English quiz game with target lock-on mechanics and 50 planet levels.",
+                summary: "An interactive 3D space-shooter educational game where players pilot a spacecraft to lock onto and blast asteroids carrying the correct English grammar answers.",
+                description: "Renders a 3D outer-space arena complete with a futuristic cockpit HUD displaying live XYZ coordinates, directional compass and inclination, ship HP, 50-level planet progression, and exterior camera toggles. Players steer via WASD/Arrows, lock targets, and fire with Space/Enter while receiving instant corrective feedback on missed answers.",
+                highlights: [
+                    "Interactive 3D space arena with explosion effects, target lock-on, and camera view toggles.",
+                    "Detailed cockpit HUD featuring ship HP, 3D coordinates, compass, score, and a 50-planet map.",
+                    "Real-time learning feedback that immediately reveals the correct answer upon impact."
+                ],
+                stack: ["JavaScript", "Three.js", "HTML5", "CSS3"],
+                github: "https://github.com/Ekuivalen07"
+            },
+            {
+                id: "08",
+                code: "File #08",
+                title: "Surfside Media Shop",
+                category: "E-Commerce Web",
+                date: "Oct 2026",
+                year: "2026",
+                role: "Full-Stack Developer",
+                status: "Completed",
+                color: "#0f766e",
+                textColor: "#ffffff",
+                tabAlign: "right",
+                image: "project/prj8.png",
+                fallbackImage: "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?auto=format&fit=crop&w=1000&q=85",
+                peekText: "A modern home decor and furniture e-commerce storefront with catalog browsing, wishlists, and cart tracking.",
+                summary: "A minimalist furniture and home decor e-commerce storefront designed to let shoppers browse popular categories, save favorite items, and manage their shopping cart effortlessly.",
+                description: "Built with an airy, white-background layout that puts product photography front and center. Features a hero slider for signature furniture pieces with direct purchase buttons, a Popular Categories showcase, full storefront navigation (Home, Shop, Cart, Wishlist, Contact), and header utilities for search, wishlist, live cart badge count, and user accounts.",
+                highlights: [
+                    "Featured furniture hero carousel with direct purchase actions and a Popular Categories section.",
+                    "Complete shopping bar including Search, Wishlist, live Cart item counter, and account access.",
+                    "Clean, lightweight storefront layout focused on visual clarity and smooth browsing."
+                ],
+                stack: ["Laravel", "PHP", "Tailwind CSS", "MySQL"],
+                github: "https://github.com/Ekuivalen07"
+            },
+            {
+                id: "09",
+                code: "File #09",
+                title: "TEKKEN: Math Arena 3D",
+                category: "3D Fighting Quiz Game",
+                date: "Nov 2026",
+                year: "2026",
+                role: "Game Developer",
+                status: "Completed",
+                color: "#dc1e1e",
+                textColor: "#ffffff",
+                tabAlign: "center",
+                image: "project/prj9.png",
+                fallbackImage: "https://images.unsplash.com/photo-1511512578047-dfb367046420?auto=format&fit=crop&w=1000&q=85",
+                peekText: "A 60 FPS 3D martial arts duel powered by fast-paced math problem solving, combos, and special attacks.",
+                summary: "An interactive 3D fighting game blending martial arts duels inside the Sacred Dragon Sanctuary arena with rapid-fire math problem solving.",
+                description: "Runs smoothly at 60 FPS with free 3D orbital camera rotation around the temple via mouse drag. Players can continue or start a new match, pick 1-Player (vs Bot) or multiplayer modes, customize timer difficulty, browse the Math Question Bank, and unleash punches, kicks, and a 5x Streak Fire Special (-20% HP) through quick calculations.",
+                highlights: [
+                    "60 FPS 3D Sacred Dragon Sanctuary arena with free mouse-controlled orbital camera rotation.",
+                    "Full game menu supporting Continue, New Game, mode selection, difficulty tiers, audio, and Question Bank.",
+                    "Combo combat mechanics culminating in a 5x Streak Fire Special (-20% HP) driven by math speed."
+                ],
+                stack: ["JavaScript", "Three.js", "HTML5", "CSS3"],
+                github: "https://github.com/Ekuivalen07"
+            },
+            {
+                id: "10",
+                code: "File #10",
+                title: "TUT.EDU Workspace",
+                category: "LMS & Creator Studio",
+                date: "Nov 2026",
+                year: "2026",
+                role: "Full-Stack Developer",
+                status: "Active Development",
+                color: "#1f51e5",
+                textColor: "#ffffff",
+                tabAlign: "left",
+                image: "project/prj10.png",
+                fallbackImage: "https://images.unsplash.com/photo-1517694712202-14dd9538aa97?auto=format&fit=crop&w=1000&q=85",
+                peekText: "A vibrant Neo-Brutalist LMS dashboard and creator workspace ('Learn. Build. Share.') for TUT.EDU.",
+                summary: "The central learning dashboard for TUT.EDU uniting class exploration, active coursework, creator class publishing, certificates, and profile settings inside one workspace.",
+                description: "Styled with a bold Neo-Brutalist visual identity combining electric blue, neon lime, and crisp black outlines. Offers unified top navigation (Dashboard, Explore Classes, My Learning, Create Class, Certificates, Profile Settings), an energetic welcome banner with quick-action buttons, and a 'Learning at a glance' overview with numbered progress cards.",
+                highlights: [
+                    "Vibrant Neo-Brutalist design system pairing electric blue, neon lime, and sharp black borders.",
+                    "All-in-one workspace for exploring courses, tracking learning, creating classes, and accessing certificates.",
+                    "'Learning at a glance' overview section using numbered cards for quick progress tracking."
+                ],
+                stack: ["Laravel 13", "Livewire", "Tailwind CSS", "MySQL"],
+                github: "https://github.com/Ekuivalen07"
+            }
+        ];
+
+        /* --------------------------------------------------------------------
+           2. RENDER TUMPUKAN 10 FOLDER ARSIP
+           -------------------------------------------------------------------- */
+        const folderStackEl = document.getElementById('folderStack');
+
+        function renderFolderStack() {
+            folderStackEl.innerHTML = '';
+
+            projectsData.forEach((proj, index) => {
+                const justifyClass =
+                    proj.tabAlign === 'center' ? 'justify-center' :
+                    proj.tabAlign === 'right' ? 'justify-end sm:pr-12' :
+                    'justify-start sm:pl-4';
+
+                const isLightText = proj.textColor === '#ffffff';
+                const subtleColor = isLightText ? 'rgba(255,255,255,0.72)' : 'rgba(20,20,20,0.72)';
+
+                const item = document.createElement('div');
+                item.className = 'folder-item';
+                item.style.zIndex = index + 1;
+                item.setAttribute('role', 'button');
+                item.setAttribute('tabindex', '0');
+                item.setAttribute('aria-label', `Buka buku proyek ${proj.title}`);
+
+                item.innerHTML = `
+                    <div class="folder-tab-row ${justifyClass}">
+                        <div class="folder-tab" style="background-color: ${proj.color}; color: ${proj.textColor};">
+                            ${proj.title}
+                        </div>
+                    </div>
+                    <div class="folder-body" style="background-color: ${proj.color}; color: ${proj.textColor};">
+                        <div class="h-[22px] w-full"></div>
+                        <div class="folder-peek-inner">
+                            <div class="px-6 sm:px-9 pt-2 pb-10 grid grid-cols-1 sm:grid-cols-12 gap-3 items-start font-mono text-[11.5px]">
+                                <div class="sm:col-span-2 font-semibold" style="color: ${subtleColor};">
+                                    ${proj.id}
+                                </div>
+                                <div class="sm:col-span-7 leading-relaxed max-w-[440px]">
+                                    <p>${proj.peekText}</p>
+                                    <p class="mt-2 inline-flex items-center gap-1.5 text-[10.5px] uppercase tracking-[0.14em]" style="color: ${subtleColor};">
+                                        <span>Klik untuk membuka buku</span>
+                                        <span>↗</span>
+                                    </p>
+                                </div>
+                                <div class="sm:col-span-3 sm:text-right" style="color: ${subtleColor};">
+                                    ${proj.date}
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                item.addEventListener('click', () => openBinder(index));
+                item.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault();
+                        openBinder(index);
+                    }
+                });
+
+                folderStackEl.appendChild(item);
+            });
+        }
+
+        /* --------------------------------------------------------------------
+           3. FISIKA 3D BUKA BUKU, TUTUP BUKU & BALIK HALAMAN (GSAP)
+           -------------------------------------------------------------------- */
+        let currentIndex = 0;
+        let isBinderOpen = false;
+        let isAnimating = false;
+        let activeTimeline = null;
+
+        const binderOverlay = document.getElementById('binderOverlay');
+        const binderHeader = document.getElementById('binderHeader');
+        const bookSpread = document.getElementById('bookSpread');
+        const bookCoverLeaf = document.getElementById('bookCoverLeaf');
+        const coverFront = document.getElementById('coverFront');
+        const coverBack = document.getElementById('coverBack');
+        const coverGlint = document.getElementById('coverGlint');
+        const bookRightBase = document.getElementById('bookRightBase');
+        const rightPageShadow = document.getElementById('rightPageShadow');
+        const pageFlipLeaf = document.getElementById('pageFlipLeaf');
+        const binderSideTabs = document.getElementById('binderSideTabs');
+
+        function populateBinder(index) {
+            const p = projectsData[index];
+            currentIndex = index;
+
+            // Header
+            document.getElementById('openBreadcrumbCode').textContent = `Project ${p.id} — ${p.category}`;
+            document.getElementById('openBigTitle').textContent = p.title;
+            document.getElementById('openMetaRole').textContent = p.role;
+            document.getElementById('openMetaDate').textContent = p.date;
+
+            // Warna Sampul Depan, Dalam Kiri, Kanan & Lubang Binder
+            coverFront.style.backgroundColor = p.color;
+            coverFront.style.color = p.textColor;
+            coverBack.style.backgroundColor = p.color;
+            bookRightBase.style.backgroundColor = p.color;
+            document.querySelectorAll('.binder-hole').forEach((hole) => {
+                hole.style.backgroundColor = p.color;
+            });
+
+            // Isi Sampul Depan (Tampil saat Buku Mulai Terbuka)
+            document.getElementById('coverFrontCode').textContent = p.code;
+            document.getElementById('coverFrontDate').textContent = p.date.toUpperCase();
+            document.getElementById('coverFrontCategory').textContent = p.category.toUpperCase();
+            document.getElementById('coverFrontTitle').textContent = p.title;
+            document.getElementById('coverFrontPeek').textContent = p.peekText;
+
+            // Halaman Kiri: Foto Proyek + Spec Receipt
+            const imgEl = document.getElementById('openProjectImage');
+            imgEl.src = p.image;
+            imgEl.alt = p.title;
+            imgEl.onerror = function () {
+                this.onerror = null;
+                this.src = p.fallbackImage;
+            };
+
+            document.getElementById('openPhotoCaption').textContent = `${p.category} — Preview`;
+            document.getElementById('openLeftFileTag').textContent = p.code;
+            document.getElementById('openPhotoCategory').textContent = p.category.toUpperCase();
+            document.getElementById('openSpecYear').textContent = p.year;
+            document.getElementById('openSpecStatus').textContent = p.status;
+            document.getElementById('openSpecRole').textContent = p.role;
+            document.getElementById('openGithubBtn').href = p.github;
+
+            document.getElementById('openTechStack').innerHTML = p.stack
+                .map((tech) => `<span class="bg-black/10 border border-black/15 px-2 py-0.5 rounded text-[10px] font-mono font-semibold">${tech}</span>`)
+                .join('');
+
+            // Halaman Kanan: Kertas Arsip (Ringkasan & Deskripsi)
+            document.getElementById('openPaperNote').innerHTML = `Entry ${p.id} of 10.<br />${p.category} • ${p.date}.`;
+            document.getElementById('openRightFileTag').textContent = p.code;
+            document.getElementById('openPaperTitle').textContent = p.title;
+            document.getElementById('openSummary').textContent = p.summary;
+            document.getElementById('openDescription').textContent = p.description;
+            document.getElementById('openPageCounter').textContent = `${p.id} / ${String(projectsData.length).padStart(2, '0')}`;
+            document.getElementById('openHighlights').innerHTML = p.highlights.map((item) => `<li>${item}</li>`).join('');
+
+            renderSideTabs(index);
+        }
+
+        function renderSideTabs(activeIdx) {
+            binderSideTabs.innerHTML = '';
+            const total = projectsData.length;
+            const indices = [
+                (activeIdx - 1 + total) % total,
+                activeIdx,
+                (activeIdx + 1) % total,
+                (activeIdx + 2) % total
+            ];
+
+            indices.forEach((idx) => {
+                const proj = projectsData[idx];
+                const btn = document.createElement('button');
+                btn.className = `side-tab font-serif text-[15.5px] tracking-wide px-2.5 py-5 cursor-pointer shadow-lg ${idx === activeIdx ? 'is-active' : 'opacity-85 hover:opacity-100'}`;
+                btn.style.backgroundColor = proj.color;
+                btn.style.color = proj.textColor;
+                btn.textContent = proj.title;
+                btn.title = `Buka ${proj.title}`;
+                btn.addEventListener('click', () => {
+                    if (idx !== currentIndex) {
+                        const dir = idx > currentIndex ? 1 : -1;
+                        flipToProject(idx, dir);
+                    }
+                });
+                binderSideTabs.appendChild(btn);
+            });
+        }
+
+        function openBinder(index) {
+            if (activeTimeline) activeTimeline.kill();
+
+            populateBinder(index);
+            isBinderOpen = true;
+            isAnimating = true;
+            document.body.style.overflow = 'hidden';
+
+            binderOverlay.classList.remove('hidden');
+            binderOverlay.scrollTop = 0;
+
+            const isDesktop = window.innerWidth >= 1024;
+            activeTimeline = gsap.timeline({
+                onComplete: () => {
+                    isAnimating = false;
+                }
+            });
+
+            if (isDesktop) {
+                coverFront.style.pointerEvents = 'none';
+                coverBack.style.pointerEvents = 'auto';
+
+                // Posisi Awal: Buku TERTUTUP rapat tepat di tengah layar (xPercent: -25) & sedikit miring
+                gsap.set(bookSpread, {
+                    opacity: 0,
+                    xPercent: -25,
+                    y: 120,
+                    scale: 0.72,
+                    rotateX: 18,
+                    rotateZ: -9
+                });
+                gsap.set(bookCoverLeaf, { rotateY: 0 });
+                gsap.set(coverGlint, { xPercent: -95 });
+                gsap.set(rightPageShadow, { opacity: 0.85 });
+                gsap.set(binderSideTabs, { opacity: 0, x: -18 });
+                gsap.set(pageFlipLeaf, { opacity: 0 });
+
+                // FASE 1: Latar & Buku Tertutup Terangkat ke Tengah Layar
+                activeTimeline
+                    .fromTo(binderOverlay,
+                        { opacity: 0 },
+                        { opacity: 1, duration: 0.35, ease: 'power2.out' },
+                        0
+                    )
+                    .to(bookSpread, {
+                        opacity: 1,
+                        y: 0,
+                        scale: 0.88,
+                        rotateX: 10,
+                        rotateZ: -3,
+                        duration: 0.48,
+                        ease: 'power3.out'
+                    }, 0.04)
+                    .fromTo(binderHeader,
+                        { opacity: 0, y: -18 },
+                        { opacity: 1, y: 0, duration: 0.5, ease: 'power3.out' },
+                        0.15
+                    )
+
+                    // FASE 2: Sampul Depan Berayun Membuka 180° + Buku Bergeser Simetris ke Tengah
+                    .to(bookCoverLeaf, {
+                        rotateY: -180,
+                        duration: 1.05,
+                        ease: 'power3.inOut'
+                    }, 0.36)
+                    .to(bookSpread, {
+                        xPercent: 0,
+                        scale: 1,
+                        rotateX: 0,
+                        rotateZ: 0,
+                        duration: 1.05,
+                        ease: 'power3.inOut'
+                    }, 0.36)
+
+                    // FASE 3: Pencahayaan Realistis (Kilau Sampul & Bayangan Kertas Kanan Memudar)
+                    .to(coverGlint, {
+                        xPercent: 125,
+                        duration: 0.75,
+                        ease: 'power2.inOut'
+                    }, 0.38)
+                    .to(rightPageShadow, {
+                        opacity: 0,
+                        duration: 0.72,
+                        ease: 'power2.out'
+                    }, 0.68)
+
+                    // FASE 4: Tab Vertikal Kanan Muncul Halus
+                    .to(binderSideTabs, {
+                        opacity: 1,
+                        x: 0,
+                        duration: 0.42,
+                        ease: 'power2.out'
+                    }, 1.05);
+            } else {
+                gsap.set([bookSpread, bookCoverLeaf], { clearProps: 'transform' });
+                activeTimeline
+                    .fromTo(binderOverlay, { opacity: 0 }, { opacity: 1, duration: 0.3, ease: 'power2.out' }, 0)
+                    .fromTo(binderHeader, { opacity: 0, y: -16 }, { opacity: 1, y: 0, duration: 0.45, ease: 'power3.out' }, 0.08)
+                    .fromTo(bookSpread, { opacity: 0, y: 55, scale: 0.94 }, { opacity: 1, y: 0, scale: 1, duration: 0.55, ease: 'power3.out' }, 0.08);
+            }
+        }
+
+        function flipToProject(nextIndex, direction = 1) {
+            if (isAnimating) return;
+            if (activeTimeline) activeTimeline.kill();
+
+            const isDesktop = window.innerWidth >= 1024;
+            isAnimating = true;
+
+            if (isDesktop) {
+                const startAngle = direction >= 0 ? 0 : -180;
+                const endAngle = direction >= 0 ? -180 : 0;
+
+                gsap.set(pageFlipLeaf, { opacity: 1, rotateY: startAngle });
+
+                activeTimeline = gsap.timeline({
+                    onComplete: () => {
+                        gsap.set(pageFlipLeaf, { opacity: 0 });
+                        isAnimating = false;
+                    }
+                });
+
+                // Lembar kertas berbalik 180° melintasi punggung buku; data berganti tepat di tengah (-90°)
+                activeTimeline
+                    .to(pageFlipLeaf, {
+                        rotateY: -90,
+                        duration: 0.28,
+                        ease: 'power2.in',
+                        onComplete: () => {
+                            populateBinder(nextIndex);
+                        }
+                    })
+                    .to(rightPageShadow, {
+                        opacity: 0.38,
+                        duration: 0.24,
+                        ease: 'power1.in'
+                    }, 0)
+                    .to(pageFlipLeaf, {
+                        rotateY: endAngle,
+                        duration: 0.34,
+                        ease: 'power2.out'
+                    })
+                    .to(rightPageShadow, {
+                        opacity: 0,
+                        duration: 0.34,
+                        ease: 'power2.out'
+                    }, '-=0.34');
+            } else {
+                activeTimeline = gsap.timeline({
+                    onComplete: () => { isAnimating = false; }
+                });
+                activeTimeline
+                    .to(bookSpread, {
+                        opacity: 0.2,
+                        y: 14,
+                        duration: 0.18,
+                        ease: 'power2.in',
+                        onComplete: () => {
+                            populateBinder(nextIndex);
+                            binderOverlay.scrollTo({ top: 0, behavior: 'smooth' });
+                        }
+                    })
+                    .to(bookSpread, {
+                        opacity: 1,
+                        y: 0,
+                        duration: 0.34,
+                        ease: 'power3.out'
+                    });
+            }
+        }
+
+        function switchProject(delta) {
+            const total = projectsData.length;
+            const nextIndex = (currentIndex + delta + total) % total;
+            flipToProject(nextIndex, delta);
+        }
+
+        function closeBinder() {
+            if (!isBinderOpen) return;
+            if (activeTimeline) activeTimeline.kill();
+
+            isAnimating = true;
+            const isDesktop = window.innerWidth >= 1024;
+
+            activeTimeline = gsap.timeline({
+                onComplete: () => {
+                    binderOverlay.classList.add('hidden');
+                    document.body.style.overflow = '';
+                    isBinderOpen = false;
+                    isAnimating = false;
+                }
+            });
+
+            if (isDesktop) {
+                activeTimeline
+                    .to(binderSideTabs, {
+                        opacity: 0,
+                        x: -14,
+                        duration: 0.18,
+                        ease: 'power2.in'
+                    }, 0)
+                    .to(bookCoverLeaf, {
+                        rotateY: 0,
+                        duration: 0.62,
+                        ease: 'power3.inOut'
+                    }, 0.04)
+                    .to(rightPageShadow, {
+                        opacity: 0.85,
+                        duration: 0.4,
+                        ease: 'power2.in'
+                    }, 0.08)
+                    .to(bookSpread, {
+                        xPercent: -25,
+                        scale: 0.84,
+                        rotateX: 12,
+                        rotateZ: -5,
+                        duration: 0.62,
+                        ease: 'power3.inOut'
+                    }, 0.04)
+                    .to(binderHeader, {
+                        opacity: 0,
+                        y: -14,
+                        duration: 0.3,
+                        ease: 'power2.in'
+                    }, 0.18)
+                    .to(bookSpread, {
+                        opacity: 0,
+                        y: 95,
+                        scale: 0.72,
+                        duration: 0.34,
+                        ease: 'power2.in'
+                    }, 0.56)
+                    .to(binderOverlay, {
+                        opacity: 0,
+                        duration: 0.3,
+                        ease: 'power2.in'
+                    }, 0.6);
+            } else {
+                activeTimeline
+                    .to(bookSpread, { opacity: 0, y: 45, duration: 0.28, ease: 'power2.in' }, 0)
+                    .to(binderHeader, { opacity: 0, duration: 0.2, ease: 'power2.in' }, 0)
+                    .to(binderOverlay, { opacity: 0, duration: 0.28, ease: 'power2.in' }, 0.06);
+            }
+        }
+
+        /* --------------------------------------------------------------------
+           4. ZOOM FOTO PROYEK (LIGHTBOX) & KONTROL KEYBOARD
+           -------------------------------------------------------------------- */
+        const imageZoomModal = document.getElementById('imageZoomModal');
+        const zoomedImg = document.getElementById('zoomedImg');
+
+        function openImageZoom() {
+            zoomedImg.src = document.getElementById('openProjectImage').src;
+            imageZoomModal.classList.remove('hidden');
+            imageZoomModal.classList.add('flex');
+        }
+
+        function closeImageZoom() {
+            imageZoomModal.classList.add('hidden');
+            imageZoomModal.classList.remove('flex');
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                if (!imageZoomModal.classList.contains('hidden')) {
+                    closeImageZoom();
+                } else if (isBinderOpen) {
+                    closeBinder();
+                }
+            } else if (isBinderOpen && imageZoomModal.classList.contains('hidden')) {
+                if (e.key === 'ArrowRight') switchProject(1);
+                if (e.key === 'ArrowLeft') switchProject(-1);
+            }
+        });
+
+        /* --------------------------------------------------------------------
+           5. ANIMASI STICKY NAVBAR SAAT DI-SCROLL
+           -------------------------------------------------------------------- */
+        const navbarWrapper = document.getElementById('navbarWrapper');
+        function handleNavbarScroll() {
+            if (window.scrollY > 30) {
+                navbarWrapper.classList.add('is-scrolled');
+            } else {
+                navbarWrapper.classList.remove('is-scrolled');
+            }
+        }
+        window.addEventListener('scroll', handleNavbarScroll, { passive: true });
+        window.addEventListener('load', () => {
+            renderFolderStack();
+            handleNavbarScroll();
+        });
+    </script>
+</body>
+</html>

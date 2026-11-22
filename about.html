@@ -1,0 +1,883 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>About — Ekuivalen</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+
+    <!-- GSAP + ScrollTrigger (Untuk Animasi Zoom Teks & Scroll Expand) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/ScrollTrigger.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        dark: '#09090b',
+                        cardDark: '#141416',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #fafaf9;
+            color: #141414;
+            overflow-x: clip;
+        }
+
+        /* ==========================================================================
+           ANIMATED STICKY NAVBAR (Pendek di atas -> Panjang saat di-scroll)
+           ========================================================================== */
+        .navbar-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 60;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            transition: padding 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            padding-top: 18px;
+        }
+
+        .navbar-inner {
+            pointer-events: auto;
+            width: 92%;
+            max-width: 690px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 9999px;
+            padding: 9px 12px 9px 26px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.06);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                border-radius 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                padding 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.4s ease,
+                border-color 0.4s ease;
+        }
+
+        .navbar-wrapper.is-scrolled {
+            padding-top: 0px;
+        }
+
+        .navbar-wrapper.is-scrolled .navbar-inner {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 0px;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 14px max(2rem, calc((100vw - 1140px) / 2));
+            box-shadow: 0 1px 0px rgba(0, 0, 0, 0.06);
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        /* Mode Gelap Otomatis untuk Navbar saat masuk Section Hitam */
+        .navbar-wrapper.is-dark .navbar-inner {
+            background: rgba(12, 12, 14, 0.88);
+            border-bottom-color: rgba(255, 255, 255, 0.08);
+            box-shadow: 0 1px 0px rgba(255, 255, 255, 0.08);
+        }
+
+        .navbar-wrapper.is-dark .nav-brand {
+            color: #ffffff;
+        }
+
+        .navbar-wrapper.is-dark .nav-link {
+            color: #a1a1aa;
+        }
+
+        .navbar-wrapper.is-dark .nav-link:hover,
+        .navbar-wrapper.is-dark .nav-link.active {
+            color: #ffffff;
+        }
+
+        .navbar-wrapper.is-dark .nav-cta {
+            background: #ffffff;
+            color: #141414;
+        }
+
+        .navbar-wrapper.is-dark .nav-cta:hover {
+            background: #e4e4e7;
+        }
+
+        /* ==========================================================================
+           CURVED 3D CERTIFICATE GALLERY (Panorama Melengkung & Auto-Move)
+           ========================================================================== */
+        .cert-stage {
+            perspective: 1150px;
+            perspective-origin: 50% 50%;
+            position: relative;
+            width: 100%;
+            height: 330px;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform-style: preserve-3d;
+        }
+
+        @media (min-width: 768px) {
+            .cert-stage {
+                height: 410px;
+            }
+        }
+
+        .cert-card {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 280px;
+            aspect-ratio: 1.414 / 1;
+            /* Proporsi standar sertifikat A4 landscape */
+            border-radius: 16px;
+            overflow: hidden;
+            background: #141416;
+            border: 1px solid rgba(255, 255, 255, 0.14);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.65);
+            will-change: transform;
+            cursor: pointer;
+            transform-style: preserve-3d;
+        }
+
+        @media (min-width: 640px) {
+            .cert-card {
+                width: 360px;
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .cert-card {
+                width: 420px;
+            }
+        }
+
+        /* ==========================================================================
+           SCROLL EXPAND (Foto 4 -> Foto 5, Smooth GPU Clip-Path)
+           ========================================================================== */
+        #expandFrame {
+            clip-path: inset(21% 32% 21% 32% round 28px);
+            will-change: clip-path;
+        }
+
+        @media (max-width: 767px) {
+            #expandFrame {
+                clip-path: inset(23% 11% 23% 11% round 24px);
+            }
+        }
+
+        #expandImage {
+            will-change: transform;
+        }
+    </style>
+</head>
+
+<body class="selection:bg-black selection:text-white">
+
+    <!-- ========================================================================
+         STICKY ANIMATED NAVBAR
+         ======================================================================== -->
+    <header id="navbarWrapper" class="navbar-wrapper">
+        <nav class="navbar-inner">
+            <a href="index.html"
+                class="nav-brand font-bold text-[15px] tracking-tight text-[#111] hover:opacity-80 transition-colors">
+                Ekuivalen
+            </a>
+
+            <div class="hidden md:flex items-center space-x-8 text-[13.5px] font-medium">
+                <a href="blog.html" class="nav-link text-[#6b7280] hover:text-[#111] transition-colors">Blog</a>
+                <a href="about.html" class="nav-link active text-[#111] font-semibold transition-colors">About</a>
+                <a href="projects.html"
+                    class="nav-link text-[#6b7280] hover:text-[#111] transition-colors">Projects</a>
+            </div>
+
+            <a href="about.html"
+                class="nav-cta inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#2a2a2a] text-white text-[13px] font-medium px-4 py-2 rounded-full transition-colors">
+                <span>Read more</span>
+                <span class="text-[11px] leading-none">↗</span>
+            </a>
+        </nav>
+    </header>
+
+    <!-- ========================================================================
+         SECTION 1: ABOUT INTRO (Mengikuti Referensi Foto 1 & 2)
+         ======================================================================== -->
+    <section class="pt-32 md:pt-40 pb-32 md:pb-44"
+        style="background: linear-gradient(180deg, #e5e7eb 0%, #e5e7eb 55%, #f3f4f6 78%, #ffffff 100%);">
+        <div class="max-w-[1060px] mx-auto px-6 sm:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-10 lg:gap-12 items-start">
+
+                <!-- KOLOM KIRI: Biodata, Core Focus & Personal Mindset -->
+                <div class="lg:col-span-7 space-y-8">
+                    <div>
+                        <p class="font-mono text-[11px] uppercase tracking-[0.18em] text-[#71717a] mb-3">
+                            ABOUT
+                        </p>
+                        <h1
+                            class="text-[42px] sm:text-[52px] font-bold tracking-[-0.035em] text-[#141414] leading-[1.08]">
+                            Ekuivalen
+                        </h1>
+
+                        <div class="mt-7 space-y-5 text-[15.5px] sm:text-[16.5px] text-[#52525b] leading-[1.75]">
+                            <p>
+                                I’m <strong class="font-semibold text-[#141414]">Ekuivalen Muhammad Firdaus</strong>,
+                                though most people call me Valen. I'm a college student living in Bogor,
+                                Indonesia studying software engineering while spending my days exploring creative
+                                storytelling, staying active, and learning from new experiences.
+                            </p>
+                            <p>
+                                I created this website as my own personal space to introduce myself and keep an archive
+                                of my journey. Beyond the projects I build, this is where I document campus life,
+                                outdoor adventures, and honest reflections picked up along the way.
+                            </p>
+                            <p>
+                                More than chasing perfection, I value staying curious and showing up consistently.
+                                Whether I’m picking up a new skill, editing a short vlog, or heading outdoors with
+                                friends, I enjoy turning ordinary days into stories worth remembering.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Kartu Putih 2 Kolom: What Keeps Me Busy & Beyond the Screen -->
+                    <div
+                        class="bg-white rounded-[24px] border border-[#e7e5e4] p-7 sm:p-8 shadow-[0_6px_24px_rgba(0,0,0,0.02)]">
+                        <div class="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                            <div>
+                                <h2 class="text-[14px] font-bold text-[#141414] mb-4">What keeps me busy</h2>
+                                <ul class="space-y-3.5 text-[13.5px] text-[#6b7280] leading-[1.65]">
+                                    <li>Growing through my studies, coursework, and creative projects at Politeknik IDN.
+                                    </li>
+                                    <li>Filming and editing short-form videos to capture daily moments and personal
+                                        milestones.</li>
+                                    <li>Practicing English and writing regularly to share ideas more clearly and
+                                        confidently.</li>
+                                    <li>Taking on real-world challenges that push me to adapt, collaborate, and think
+                                        resourcefully.</li>
+                                </ul>
+                            </div>
+
+                            <div>
+                                <h2 class="text-[14px] font-bold text-[#141414] mb-4">Beyond the screen</h2>
+                                <ul class="space-y-3.5 text-[13.5px] text-[#6b7280] leading-[1.65]">
+                                    <li>Staying energized with endurance sports—morning jogs with friends, cycling, and
+                                        swimming.</li>
+                                    <li>Hiking through hills and mountains whenever I need fresh air and a clear head.
+                                    </li>
+                                    <li>Following Formula 1 races closely and unwinding with a good horror movie or pop
+                                        music.</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kartu Hitam: Personal Mindset -->
+                    <div
+                        class="bg-[#141414] text-white rounded-[24px] p-7 sm:p-9 shadow-[0_16px_40px_rgba(0,0,0,0.12)]">
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.18em] text-[#71717a] mb-4">
+                            PERSONAL MINDSET
+                        </p>
+                        <p class="text-[15.5px] sm:text-[16.5px] text-[#e4e4e7] leading-[1.78] font-normal">
+                            I believe real growth comes from daily consistency, staying humble, and treating every
+                            mistake as part of the learning process. Building good work matters—but so do the people you
+                            meet, the stories you collect, and the balance you keep along the way.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- KOLOM KANAN: Foto Potret + Info Card -->
+                <div class="lg:col-span-5 space-y-6 lg:sticky lg:top-24">
+                    <!-- Kartu Foto + Biodata Ringkas -->
+                    <div
+                        class="bg-white rounded-[24px] border border-[#e7e5e4] overflow-hidden shadow-[0_6px_24px_rgba(0,0,0,0.025)]">
+                        <div class="w-full aspect-[4/4.6] bg-[#18181b] overflow-hidden">
+                            <img src="Image/poto2.jpeg" alt="Ekuivalen Portrait"
+                                class="w-full h-full object-cover grayscale hover:grayscale-0 transition-all duration-700"
+                                onerror="this.src='Image/profile.png'" />
+                        </div>
+
+                        <div class="p-6 sm:p-7 space-y-5 text-[13.5px]">
+                            <div>
+                                <p class="font-semibold text-[#141414]">Based in</p>
+                                <p class="text-[#6b7280] mt-0.5">Bogor, Indonesia</p>
+                            </div>
+
+                            <div>
+                                <p class="font-semibold text-[#141414]">Currently</p>
+                                <p class="text-[#6b7280] mt-0.5 leading-relaxed">
+                                    Studying at Politeknik IDN, making short vlogs, and building personal projects on
+                                    the side.
+                                </p>
+                            </div>
+
+                            <div>
+                                <p class="font-semibold text-[#141414]">Interests</p>
+                                <p class="text-[#6b7280] mt-0.5 leading-relaxed">
+                                    Storytelling, Video Editing, Endurance Sports, Hiking, Formula 1, Horror Movies, and
+                                    Web Design.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Kartu Read Next -->
+                    <div
+                        class="bg-white rounded-[24px] border border-[#e7e5e4] p-6 sm:p-7 shadow-[0_6px_24px_rgba(0,0,0,0.02)]">
+                        <p class="text-[13.5px] font-semibold text-[#141414] mb-4">Read next</p>
+                        <div class="flex flex-wrap items-center gap-3">
+                            <a href="blog.html"
+                                class="inline-flex items-center justify-center bg-[#141414] hover:bg-[#2a2a2a] text-white text-[13px] font-medium px-5 py-2.5 rounded-full transition-colors">
+                                Browse blog
+                            </a>
+                            <a href="https://github.com/Ekuivalen07" target="_blank" rel="noopener noreferrer"
+                                class="inline-flex items-center justify-center bg-white hover:bg-[#f4f4f5] text-[#141414] border border-[#e5e7eb] text-[13px] font-medium px-5 py-2.5 rounded-full transition-colors">
+                                GitHub profile
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================================
+         SECTION 2: FULL-SCREEN TEXT ZOOM "SERTIFIKAT" (Putih -> Hitam Mulus)
+         ======================================================================== -->
+    <section id="certZoomSection"
+        class="relative w-full h-screen bg-white overflow-hidden flex items-center justify-center">
+        <div id="certZoomWrapper"
+            class="relative z-10 flex flex-col items-center justify-center select-none will-change-transform px-4">
+            <span id="certZoomSub"
+                class="font-mono text-[11px] sm:text-[12px] uppercase tracking-[0.26em] text-[#71717a] mb-3">
+                SCROLL TO EXPLORE
+            </span>
+            <!-- Huruf "i" menjadi titik pusat zoom warna hitam solid -->
+            <h2 id="certZoomText"
+                class="text-[15.5vw] sm:text-[13vw] md:text-[128px] lg:text-[154px] font-black tracking-[-0.045em] leading-none text-[#09090b]">
+                Sert<span id="zoomLetterAnchor" class="inline-block">i</span>fikat
+            </h2>
+        </div>
+
+        <!-- Lapisan hitam pengaman agar akhir zoom menyatu 100% tanpa garis di semua layar -->
+        <div id="certZoomBlackout" class="pointer-events-none absolute inset-0 z-20 bg-[#09090b] opacity-0"></div>
+    </section>
+
+    <!-- ========================================================================
+         SECTION 3: HALAMAN SERTIFIKAT (Hitam + Panorama Melengkung Gerak Sendiri)
+         ======================================================================== -->
+    <section id="certificatesSection"
+        class="relative bg-[#09090b] text-white pt-16 sm:pt-24 pb-24 sm:pb-32 overflow-hidden">
+        <!-- Header Sertifikat -->
+        <div class="max-w-[900px] mx-auto px-6 text-center mb-12 sm:mb-16">
+            <p class="font-mono text-[11px] uppercase tracking-[0.22em] text-[#71717a] mb-3">
+                ACHIEVEMENTS &amp; CREDENTIALS
+            </p>
+            <h2 class="text-[36px] sm:text-[52px] font-bold tracking-[-0.03em] leading-[1.1] text-white">
+                Certificates &amp; Achievements
+            </h2>
+            <p class="mt-4 text-[14.5px] sm:text-[15.5px] text-[#a1a1aa] max-w-[540px] mx-auto leading-relaxed">
+                A collection of training certificates, technical competency certificates, and certificates of
+                participation in activities. Hover your cursor to pause
+                or click to view a larger image.
+            </p>
+        </div>
+
+        <!-- Stage Panorama Melengkung 3D (Bergerak Otomatis) -->
+        <div id="certStage" class="cert-stage">
+            <!-- Kartu 1 -->
+            <div class="cert-card group" data-title="Full-Stack Web Development — Laravel & Livewire">
+                <img src="Image/ser1 (1).png" alt="Sertifikat 1"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onerror="this.src='https://placehold.co/840x594/18181b/e4e4e7?text=Sertifikat+01%0AFull-Stack+Laravel'" />
+                <div
+                    class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p class="text-[12.5px] font-semibold text-white">Full-Stack Web Development</p>
+                    <p class="text-[11px] text-white/70">Golang &amp; React</p>
+                </div>
+            </div>
+
+            <!-- Kartu 2 -->
+            <div class="cert-card group" data-title="Modern UI Styling — Tailwind CSS">
+                <img src="Image/ser1 (2).png" alt="Sertifikat 2"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onerror="this.src='https://placehold.co/840x594/1f1f23/e4e4e7?text=Sertifikat+02%0ATailwind+CSS+Mastery'" />
+                <div
+                    class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p class="text-[12.5px] font-semibold text-white">FullStack Next.js Developer</p>
+                    <p class="text-[11px] text-white/70">Next.js</p>
+                </div>
+            </div>
+
+            <!-- Kartu 3 -->
+            <div class="cert-card group" data-title="Database Design & MySQL">
+                <img src="Image/ser1 (3).png" alt="Sertifikat 3"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onerror="this.src='https://placehold.co/840x594/141418/e4e4e7?text=Sertifikat+03%0ADatabase+%26+MySQL'" />
+                <div
+                    class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p class="text-[12.5px] font-semibold text-white">FullStack Developer</p>
+                    <p class="text-[11px] text-white/70">Rust &amp; React</p>
+                </div>
+            </div>
+
+            <!-- Kartu 4 -->
+            <div class="cert-card group" data-title="JavaScript & Interactive Web">
+                <img src="Image/ser1 (4).png" alt="Sertifikat 4"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onerror="this.src='https://placehold.co/840x594/1c1c21/e4e4e7?text=Sertifikat+04%0AJavaScript+Interactive'" />
+                <div
+                    class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p class="text-[12.5px] font-semibold text-white">FullStack Developer</p>
+                    <p class="text-[11px] text-white/70">Rust &amp; Vue.js</p>
+                </div>
+            </div>
+
+            <!-- Kartu 5 -->
+            <div class="cert-card group" data-title="UI/UX Prototyping — Figma">
+                <img src="Image/ser1 (5).png" alt="Sertifikat 5"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onerror="this.src='https://placehold.co/840x594/16161a/e4e4e7?text=Sertifikat+05%0AUI%2FUX+Design+Figma'" />
+                <div
+                    class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p class="text-[12.5px] font-semibold text-white">Dasar Pemrograman Web</p>
+                    <p class="text-[11px] text-white/70">HTML &amp; CSS</p>
+                </div>
+            </div>
+
+            <!-- Kartu 6 -->
+            <div class="cert-card group" data-title="Leadership & Project Collaboration">
+                <img src="Image/ser1 (6).png" alt="Sertifikat 6"
+                    class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                    onerror="this.src='https://placehold.co/840x594/202026/e4e4e7?text=Sertifikat+06%0ACampus+%26+Leadership'" />
+                <div
+                    class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/85 via-black/40 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                    <p class="text-[12.5px] font-semibold text-white">Leadership &amp; Teamwork</p>
+                    <p class="text-[11px] text-white/70">Campus Program &amp; Git Workflow</p>
+                </div>
+            </div>
+
+            <!-- Efek Vignette Halus di Tepi Kiri & Kanan -->
+            <div
+                class="pointer-events-none absolute inset-y-0 left-0 w-16 sm:w-28 bg-gradient-to-r from-[#09090b] to-transparent z-30">
+            </div>
+            <div
+                class="pointer-events-none absolute inset-y-0 right-0 w-16 sm:w-28 bg-gradient-to-l from-[#09090b] to-transparent z-30">
+            </div>
+        </div>
+
+        <p class="mt-6 text-center font-mono text-[11px] uppercase tracking-[0.18em] text-[#52525b]">
+            AUTO-SCROLLING GALLERY • HOVER TO PAUSE • CLICK TO ZOOM
+        </p>
+    </section>
+
+    <!-- ========================================================================
+         SECTION 4: SCROLL EXPAND — UCAPAN TERIMA KASIH (Foto 4 -> Foto 5)
+         ======================================================================== -->
+    <section id="thankYouSection" class="relative w-full h-screen bg-[#09090b] overflow-hidden">
+        <!-- Bingkai Gambar yang Membesar Halus dari Kotak Tengah ke Layar Penuh -->
+        <div id="expandFrame" class="absolute inset-0 w-full h-full overflow-hidden">
+            <img id="expandImage" src="Image/thanks-bg.jpg" alt="Terima kasih telah berkunjung"
+                class="w-full h-full object-cover scale-[1.14]"
+                onerror="this.src='https://images.unsplash.com/photo-1511497584788-876760111969?auto=format&fit=crop&w=1800&q=85'" />
+            <!-- Overlay Gelap Halus agar Teks Putih Selalu Jelas Terbaca -->
+            <div class="absolute inset-0 bg-black/45"></div>
+        </div>
+
+        <!-- Teks Awal (Muncul saat masih kotak kecil — seperti Foto 4) -->
+        <div id="expandTextStart"
+            class="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center px-6 text-center">
+            <h2
+                class="text-[36px] sm:text-[52px] md:text-[64px] font-bold tracking-[-0.03em] text-white drop-shadow-[0_6px_28px_rgba(0,0,0,0.65)]">
+                Thank you.
+            </h2>
+        </div>
+
+        <!-- Teks Akhir (Muncul saat gambar sudah layar penuh — seperti Foto 5) -->
+        <div id="expandTextEnd"
+            class="absolute inset-0 z-20 flex flex-col items-center justify-center px-6 text-center opacity-0 translate-y-6 pointer-events-none">
+            <p class="font-mono text-[11px] uppercase tracking-[0.24em] text-white/75 mb-4">
+                APPRECIATION
+            </p>
+            <h2
+                class="text-[34px] sm:text-[52px] md:text-[62px] font-bold tracking-[-0.03em] leading-[1.1] text-white max-w-[820px] drop-shadow-[0_6px_30px_rgba(0,0,0,0.55)]">
+                Thank you for visiting my portfolio.
+            </h2>
+            <p
+                class="mt-5 text-[15.5px] sm:text-[18px] text-white/85 max-w-[600px] leading-[1.7] drop-shadow-[0_2px_16px_rgba(0,0,0,0.65)]">
+                Every piece of work on this page is built from curiosity, experimentation, and consistent learning. If
+                you're interested in discussing or collaborating, my door is always open.
+            </p>
+            <div class="mt-9 flex flex-wrap items-center justify-center gap-3.5 pointer-events-auto">
+                <a href="index.html#contact"
+                    class="inline-flex items-center gap-2 bg-white hover:bg-gray-200 text-[#111111] text-[13.5px] font-semibold px-6 py-3 rounded-full transition-colors shadow-lg">
+                    <span>Let's Collaborate</span>
+                    <span>↗</span>
+                </a>
+                <a href="index.html"
+                    class="inline-flex items-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-md border border-white/25 text-white text-[13.5px] font-medium px-6 py-3 rounded-full transition-colors">
+                    <span>Back to Home</span>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ========================================================================
+         FOOTER MONOKROM (Selaras dengan Halaman Lain)
+         ======================================================================== -->
+    <footer class="relative overflow-hidden bg-[#09090b] pt-20 sm:pt-24 text-white border-t border-white/[0.08]">
+        <div class="relative z-10 max-w-[1060px] mx-auto px-6 sm:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">
+                <!-- Kolom Kiri -->
+                <div class="lg:col-span-5 flex flex-col justify-between">
+                    <h2 class="text-[28px] sm:text-[34px] font-semibold tracking-[-0.03em] leading-[1.15] text-white">
+                        Build it clean.<br />
+                        Ship it bold
+                        <span
+                            class="inline-flex items-center justify-center align-middle ml-1 w-8 h-8 rounded-full bg-white text-[#09090b] text-[14px] -rotate-6">
+                            <i class="fa-solid fa-terminal"></i>
+                        </span>
+                    </h2>
+
+                    <div class="mt-8 text-[12px] text-[#71717a] leading-relaxed">
+                        <p>© 2026 Ekuivalen. All rights reserved.</p>
+                        <p>Crafted with care by <span class="font-semibold text-white">Ekuivalen</span></p>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: 4 Kolom Menu -->
+                <div class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-8 text-[13px]">
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">EXPLORE</p>
+                        <ul class="space-y-2.5 text-[#a1a1aa] font-medium">
+                            <li><a href="index.html" class="hover:text-white transition-colors">Home</a></li>
+                            <li><a href="blog.html" class="hover:text-white transition-colors">Blog</a></li>
+                            <li><a href="about.html" class="hover:text-white transition-colors">About</a></li>
+                            <li><a href="index.html#portfolio" class="hover:text-white transition-colors">Projects</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">WORKS</p>
+                        <ul class="space-y-2.5 text-[#a1a1aa] font-medium">
+                            <li><a href="index.html#portfolio" class="hover:text-white transition-colors">Web Apps</a>
+                            </li>
+                            <li><a href="index.html#video" class="hover:text-white transition-colors">Latest Video</a>
+                            </li>
+                            <li><a href="index.html#products" class="hover:text-white transition-colors">Showcase</a>
+                            </li>
+                            <li><a href="#certificatesSection"
+                                    class="hover:text-white transition-colors">Certificates</a></li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">CONNECT</p>
+                        <ul class="space-y-2.5 text-[#a1a1aa] font-medium">
+                            <li><a href="https://github.com/Ekuivalen07" target="_blank" rel="noopener noreferrer"
+                                    class="hover:text-white transition-colors">GitHub</a></li>
+                            <li><a href="index.html#video" class="hover:text-white transition-colors">YouTube</a></li>
+                            <li><a href="index.html#about" class="hover:text-white transition-colors">LinkedIn</a></li>
+                            <li><a href="mailto:business@adplay.id" class="hover:text-white transition-colors">Email</a>
+                            </li>
+                        </ul>
+                    </div>
+
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">INFO</p>
+                        <ul class="space-y-2.5 text-[#a1a1aa] font-medium">
+                            <li><a href="index.html#contact" class="hover:text-white transition-colors">Inquiry /
+                                    Collab</a></li>
+                            <li><a href="blog.html" class="hover:text-white transition-colors">Articles</a></li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tipografi Besar Bawah -->
+        <div class="relative z-10 w-full mt-16 sm:mt-20 flex justify-center select-none pointer-events-none">
+            <span
+                class="block font-black text-white/95 text-[18.5vw] lg:text-[17vw] xl:text-[210px] tracking-[-0.045em] leading-[0.76] translate-y-[10%]">
+                Ekuivalen
+            </span>
+        </div>
+    </footer>
+
+    <!-- ========================================================================
+         LIGHTBOX MODAL (Preview Sertifikat Saat Diklik)
+         ======================================================================== -->
+    <div id="certModal"
+        class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/85 backdrop-blur-md p-4 sm:p-8"
+        onclick="closeCertModal()">
+        <div class="relative max-w-[900px] w-full" onclick="event.stopPropagation()">
+            <button onclick="closeCertModal()"
+                class="absolute -top-11 right-0 text-white/80 hover:text-white text-[14px] font-medium inline-flex items-center gap-2 cursor-pointer">
+                <span>Tutup</span>
+                <i class="fa-solid fa-xmark text-lg"></i>
+            </button>
+            <img id="certModalImg" src="" alt="Preview Sertifikat"
+                class="w-full max-h-[80vh] object-contain rounded-2xl border border-white/15 shadow-2xl bg-[#141416]" />
+            <p id="certModalTitle" class="mt-4 text-center text-[14px] text-white/85 font-medium"></p>
+        </div>
+    </div>
+
+    <!-- ========================================================================
+         JAVASCRIPT: NAVBAR, GSAP TEXT ZOOM, 3D CURVED CERTIFICATES & SCROLL EXPAND
+         ======================================================================== -->
+    <script>
+        gsap.registerPlugin(ScrollTrigger);
+
+        /* --------------------------------------------------------------------
+           1. ANIMASI STICKY NAVBAR + OTOMATIS MODE GELAP DI SECTION HITAM
+           -------------------------------------------------------------------- */
+        const navbarWrapper = document.getElementById('navbarWrapper');
+        const certSection = document.getElementById('certificatesSection');
+
+        function handleNavbarState() {
+            if (window.scrollY > 30) {
+                navbarWrapper.classList.add('is-scrolled');
+            } else {
+                navbarWrapper.classList.remove('is-scrolled');
+            }
+
+            // Ubah navbar ke mode gelap saat sudah melewati zoom ke area hitam
+            const certTop = certSection.getBoundingClientRect().top;
+            if (certTop <= 80) {
+                navbarWrapper.classList.add('is-dark');
+            } else {
+                navbarWrapper.classList.remove('is-dark');
+            }
+        }
+        window.addEventListener('scroll', handleNavbarState, { passive: true });
+        window.addEventListener('load', handleNavbarState);
+
+        /* --------------------------------------------------------------------
+           2. GSAP FULL-SCREEN TEXT ZOOM "SERTIFIKAT" (Putih -> Hitam Mulus)
+           -------------------------------------------------------------------- */
+        const zoomWrapper = document.getElementById('certZoomWrapper');
+        const zoomAnchor = document.getElementById('zoomLetterAnchor');
+
+        function setZoomOrigin() {
+            // Reset sementara agar pembacaan koordinat akurat di semua ukuran layar
+            gsap.set(zoomWrapper, { scale: 1, x: 0, y: 0 });
+            const wrapperRect = zoomWrapper.getBoundingClientRect();
+            const anchorRect = zoomAnchor.getBoundingClientRect();
+
+            // Kunci titik zoom tepat di batang vertikal hitam huruf "i"
+            const originX = (anchorRect.left - wrapperRect.left) + (anchorRect.width * 0.5);
+            const originY = (anchorRect.top - wrapperRect.top) + (anchorRect.height * 0.66);
+
+            zoomWrapper.style.transformOrigin = `${originX}px ${originY}px`;
+        }
+
+        setZoomOrigin();
+        ScrollTrigger.addEventListener('refreshInit', setZoomOrigin);
+
+        const tlCertZoom = gsap.timeline({
+            scrollTrigger: {
+                trigger: '#certZoomSection',
+                start: 'top top',
+                end: '+=150%',
+                scrub: 1,
+                pin: true,
+                anticipatePin: 1,
+                invalidateOnRefresh: true
+            }
+        });
+
+        tlCertZoom
+            .to('#certZoomSub', {
+                opacity: 0,
+                y: -20,
+                duration: 0.16,
+                ease: 'power1.out'
+            }, 0)
+            .to('#certZoomWrapper', {
+                scale: 135,
+                ease: 'power2.in',
+                duration: 1
+            }, 0)
+            .to('#certZoomBlackout', {
+                opacity: 1,
+                ease: 'none',
+                duration: 0.22
+            }, 0.78);
+
+        /* --------------------------------------------------------------------
+           3. GALERI SERTIFIKAT MELENGKUNG 3D (Gerak Otomatis & Pause on Hover)
+           -------------------------------------------------------------------- */
+        const certStage = document.getElementById('certStage');
+        const certCards = Array.from(document.querySelectorAll('.cert-card'));
+        let certScrollX = 0;
+        let isCertPaused = false;
+        const autoSpeed = 0.65; // Kecepatan gerak otomatis (lebih besar = lebih cepat)
+
+        certStage.addEventListener('mouseenter', () => { isCertPaused = true; });
+        certStage.addEventListener('mouseleave', () => { isCertPaused = false; });
+
+        function renderCurvedCertificates() {
+            const stageW = certStage.offsetWidth || window.innerWidth;
+            const cardW = certCards[0]?.offsetWidth || 380;
+            const gap = window.innerWidth < 640 ? 22 : 34;
+            const step = cardW + gap;
+            const totalW = step * certCards.length;
+
+            if (!isCertPaused) {
+                certScrollX = (certScrollX + autoSpeed) % totalW;
+            }
+
+            certCards.forEach((card, i) => {
+                // Posisi horizontal melingkar tanpa putus (infinite loop)
+                let x = (i * step - certScrollX) % totalW;
+                if (x < -totalW / 2) x += totalW;
+                if (x > totalW / 2) x -= totalW;
+
+                // Normalisasi jarak dari tengah layar untuk menciptakan efek lengkung 3D
+                const norm = x / (stageW * 0.52);
+                const clampedNorm = Math.max(-1.6, Math.min(1.6, norm));
+
+                const rotateY = -clampedNorm * 21; // Tepi kiri & kanan melengkung ke arah penonton
+                const translateZ = (clampedNorm * clampedNorm) * 85 - 45;
+                const scaleY = 1 + (clampedNorm * clampedNorm) * 0.04;
+
+                card.style.transform = `translate3d(calc(-50% + ${x}px), -50%, ${translateZ}px) rotateY(${rotateY}deg) scaleY(${scaleY})`;
+                card.style.zIndex = Math.round(100 - Math.abs(clampedNorm) * 20);
+            });
+
+            requestAnimationFrame(renderCurvedCertificates);
+        }
+        requestAnimationFrame(renderCurvedCertificates);
+
+        // Lightbox klik sertifikat
+        const certModal = document.getElementById('certModal');
+        const certModalImg = document.getElementById('certModalImg');
+        const certModalTitle = document.getElementById('certModalTitle');
+
+        certCards.forEach((card) => {
+            card.addEventListener('click', () => {
+                const img = card.querySelector('img');
+                certModalImg.src = img.src;
+                certModalTitle.textContent = card.dataset.title || '';
+                certModal.classList.remove('hidden');
+                certModal.classList.add('flex');
+                isCertPaused = true;
+            });
+        });
+
+        function closeCertModal() {
+            certModal.classList.add('hidden');
+            certModal.classList.remove('flex');
+            isCertPaused = false;
+        }
+        window.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeCertModal();
+        });
+
+        /* --------------------------------------------------------------------
+           4. GSAP SMOOTH SCROLL EXPAND — UCAPAN TERIMA KASIH (Fokus di Tengah)
+           -------------------------------------------------------------------- */
+        const expandFrame = document.getElementById('expandFrame');
+        const expandProgress = { value: 0 };
+
+        function updateExpandClip() {
+            const isMobile = window.innerWidth < 768;
+            const startY = isMobile ? 23 : 21; // Jarak atas & bawah awal (%)
+            const startX = isMobile ? 11 : 32; // Jarak kiri & kanan awal (%)
+            const startRad = isMobile ? 24 : 28; // Sudut melengkung awal (px)
+
+            const p = expandProgress.value;
+            const py = startY * (1 - p);
+            const px = startX * (1 - p);
+            const rad = startRad * (1 - p);
+
+            // Keempat sisi (atas, kanan, bawah, kiri) dihitung simetris dari tengah
+            expandFrame.style.clipPath = `inset(${py}% ${px}% ${py}% ${px}% round ${rad}px)`;
+        }
+
+        // Terapkan posisi kotak tengah saat pertama kali dimuat & saat layar diubah ukurannya
+        updateExpandClip();
+        window.addEventListener('resize', updateExpandClip);
+
+        const tlExpand = gsap.timeline({
+            scrollTrigger: {
+                trigger: '#thankYouSection',
+                start: 'top top',
+                end: '+=160%',
+                scrub: 1.2,
+                pin: true,
+                anticipatePin: 1,
+                invalidateOnRefresh: true
+            }
+        });
+
+        tlExpand
+            // Bingkai membesar mulus dari titik tengah ke layar penuh
+            .to(expandProgress, {
+                value: 1,
+                ease: 'power2.inOut',
+                duration: 1,
+                onUpdate: updateExpandClip
+            }, 0)
+            // Gambar di dalam ikut zoom-out perlahan agar terasa sinematik
+            .to('#expandImage', {
+                scale: 1,
+                ease: 'power2.out',
+                duration: 1
+            }, 0)
+            // Teks awal ("Terima kasih.") memudar halus di awal scroll
+            .to('#expandTextStart', {
+                opacity: 0,
+                scale: 1.08,
+                ease: 'power1.in',
+                duration: 0.35
+            }, 0.08)
+            // Teks akhir (Ucapan Terima Kasih + Tombol) muncul halus saat layar hampir penuh
+            .to('#expandTextEnd', {
+                opacity: 1,
+                y: 0,
+                ease: 'power2.out',
+                duration: 0.45
+            }, 0.55);
+    </script>
+</body>
+
+</html>

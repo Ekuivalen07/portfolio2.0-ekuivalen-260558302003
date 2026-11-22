@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="id" class="scroll-smooth">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Blog — Ekuivalen</title>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <!-- Google Fonts: Inter, Caveat, dan JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Caveat:wght@500;600&family=Inter:wght@300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+
+    <!-- FontAwesome 6 CDN -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css" />
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'sans-serif'],
+                        hand: ['Caveat', 'cursive'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        dark: '#141414',
+                        cardDark: '#1c1c1c',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        * {
+            box-sizing: border-box;
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #ffffff;
+            color: #111111;
+            overflow-x: hidden;
+        }
+
+        /* ==========================================================================
+           ANIMATED STICKY NAVBAR (Memendek di atas, Memanjang saat di-scroll)
+           ========================================================================== */
+        .navbar-wrapper {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            justify-content: center;
+            pointer-events: none;
+            transition: padding 0.45s cubic-bezier(0.16, 1, 0.3, 1);
+            padding-top: 18px;
+        }
+
+        .navbar-inner {
+            pointer-events: auto;
+            width: 92%;
+            max-width: 690px;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 9999px;
+            padding: 9px 12px 9px 26px;
+            box-shadow: 0 10px 35px rgba(0, 0, 0, 0.06), 0 1px 3px rgba(0, 0, 0, 0.03);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: max-width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                width 0.5s cubic-bezier(0.16, 1, 0.3, 1),
+                border-radius 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                padding 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                box-shadow 0.45s cubic-bezier(0.16, 1, 0.3, 1),
+                background-color 0.45s ease;
+        }
+
+        /* State ketika halaman di-scroll ke bawah */
+        .navbar-wrapper.is-scrolled {
+            padding-top: 0px;
+        }
+
+        .navbar-wrapper.is-scrolled .navbar-inner {
+            width: 100%;
+            max-width: 100%;
+            border-radius: 0px;
+            background: rgba(255, 255, 255, 0.96);
+            padding: 14px max(2rem, calc((100vw - 1140px) / 2));
+            box-shadow: 0 1px 0px rgba(0, 0, 0, 0.06);
+            border-top: none;
+            border-left: none;
+            border-right: none;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+        }
+
+        /* Hover transition untuk kartu blog */
+        .blog-item {
+            transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .blog-item:hover {
+            transform: translateY(-4px);
+        }
+    </style>
+</head>
+
+<body class="selection:bg-black selection:text-white flex flex-col min-h-screen">
+
+    <!-- ========================================================================
+         STICKY ANIMATED NAVBAR
+         ======================================================================== -->
+    <header id="navbarWrapper" class="navbar-wrapper">
+        <nav class="navbar-inner">
+            <!-- Brand Name (Kembali ke halaman utama) -->
+            <a href="index.html"
+                class="font-bold text-[15px] tracking-tight text-[#111] hover:opacity-80 transition-opacity">
+                Ekuivalen
+            </a>
+
+            <!-- Center Navigation Links -->
+            <div class="hidden md:flex items-center space-x-8 text-[13.5px] font-medium text-[#6b7280]">
+                <a href="blog.html" class="text-[#111] font-semibold">Blog</a>
+                <a href="about.html" class="hover:text-[#111] transition-colors">About</a>
+                <a href="projects.html" class="hover:text-[#111] transition-colors">Projects</a>
+            </div>
+
+            <!-- Right CTA Button -->
+            <a href="about.html"
+                class="inline-flex items-center gap-1.5 bg-[#141414] hover:bg-[#2a2a2a] text-white text-[13px] font-medium px-4 py-2 rounded-full transition-all">
+                <span>Read more</span>
+                <span class="text-[11px] leading-none">↗</span>
+            </a>
+        </nav>
+    </header>
+
+    <!-- ========================================================================
+         MAIN CONTENT: HEADER BLOG, SEARCH, FILTER & 6 CARDS GRID
+         ======================================================================== -->
+    <main class="flex-1 pt-32 md:pt-40 pb-24 bg-white">
+        <div class="max-w-[1060px] mx-auto px-6 sm:px-8">
+
+            <!-- Header Judul & Deskripsi -->
+            <div class="max-w-[640px]">
+                <h1 class="text-[44px] sm:text-[54px] font-normal tracking-[-0.03em] text-[#141414] leading-tight">
+                    Blog
+                </h1>
+                <p class="mt-4 text-[15.5px] sm:text-[16.5px] text-[#6b7280] leading-[1.68]">
+                    A collection of English-language articles on web development, learning notes, technology
+                    exploration, and documentation of activities, organized for easy searching and reading.
+                </p>
+            </div>
+
+            <!-- Kolom Pencarian -->
+            <div class="mt-8 max-w-[460px]">
+                <div class="relative flex items-center">
+                    <svg class="w-4 h-4 text-[#9ca3af] absolute left-4 pointer-events-none" fill="none"
+                        stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+                        <circle cx="11" cy="11" r="8"></circle>
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-4.35-4.35"></path>
+                    </svg>
+                    <input id="blogSearchInput" type="text" placeholder="Cari judul, topik, atau kategori..."
+                        class="w-full pl-11 pr-4 py-2.5 text-[13.5px] text-[#141414] placeholder-[#9ca3af] bg-white border border-[#e5e7eb] rounded-full focus:outline-none focus:border-[#141414] transition-colors" />
+                </div>
+            </div>
+
+            <!-- Filter Kategori -->
+            <div id="categoryFilters" class="mt-7 flex flex-wrap items-center gap-6 text-[13.5px]">
+                <button data-filter="all"
+                    class="filter-btn font-semibold text-[#141414] cursor-pointer transition-colors">
+                    All
+                </button>
+                <button data-filter="Web Dev"
+                    class="filter-btn font-medium text-[#9ca3af] hover:text-[#141414] cursor-pointer transition-colors">
+                    Web Dev
+                </button>
+                <button data-filter="Story"
+                    class="filter-btn font-medium text-[#9ca3af] hover:text-[#141414] cursor-pointer transition-colors">
+                    Story
+                </button>
+                <button data-filter="Study"
+                    class="filter-btn font-medium text-[#9ca3af] hover:text-[#141414] cursor-pointer transition-colors">
+                    Study
+                </button>
+            </div>
+
+            <!-- Grid 6 Kartu Blog -->
+            <div id="blogGrid" class="mt-10 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-x-7 gap-y-12">
+
+                <!-- CARD 1 -->
+                <article class="blog-item group cursor-pointer" data-category="Web Dev">
+                    <a href="artikel1.html" class="block">
+                        <div
+                            class="w-full aspect-[4/3] rounded-[18px] overflow-hidden bg-[#f4f4f5] mb-4 border border-black/5">
+                            <img src="Image/artikel1.png" alt="Claude Secret Codes"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                onerror="this.src='https://images.unsplash.com/photo-1620712943543-bcc4688e7485?auto=format&fit=crop&w=800&q=80'" />
+                        </div>
+                        <h2
+                            class="blog-title text-[16px] font-semibold text-[#141414] leading-[1.45] group-hover:text-black/70 transition-colors">
+                            Development of an e-learning website with the tagline “Learn. Build. Share.”
+                        </h2>
+                        <div class="mt-2 flex items-center gap-2 text-[12.5px]">
+                            <span class="font-medium text-[#141414]">Web Dev</span>
+                            <span class="text-[#9ca3af]">19 Nov 2026</span>
+                        </div>
+                    </a>
+                </article>
+
+                <!-- CARD 2 -->
+                <article class="blog-item group cursor-pointer" data-category="Story">
+                    <a href="artikel2.html" class="block">
+                        <div
+                            class="w-full aspect-[4/3] rounded-[18px] overflow-hidden bg-[#f4f4f5] mb-4 border border-black/5">
+                            <img src="Image/artikel2.jpeg" alt="Laravel & Livewire"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                onerror="this.src='https://images.unsplash.com/photo-1555066931-4365d14bab8c?auto=format&fit=crop&w=800&q=80'" />
+                        </div>
+                        <h2
+                            class="blog-title text-[16px] font-semibold text-[#141414] leading-[1.45] group-hover:text-black/70 transition-colors">
+                            Footprints on Mount Merbabu, Last Memories Before We Part Ways.
+                        </h2>
+                        <div class="mt-2 flex items-center gap-2 text-[12.5px]">
+                            <span class="font-medium text-[#141414]">Story</span>
+                            <span class="text-[#9ca3af]">15 Nov 2026</span>
+                        </div>
+                    </a>
+                </article>
+
+                <!-- CARD 3 -->
+                <article class="blog-item group cursor-pointer" data-category="Study">
+                    <a href="artikel3.html" class="block">
+                        <div
+                            class="w-full aspect-[4/3] rounded-[18px] overflow-hidden bg-[#f4f4f5] mb-4 border border-black/5">
+                            <img src="Image/artikel3.jpeg" alt="Humanize AI Text"
+                                class="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                                onerror="this.src='https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=800&q=80'" />
+                        </div>
+                        <h2
+                            class="blog-title text-[16px] font-semibold text-[#141414] leading-[1.45] group-hover:text-black/70 transition-colors">
+                            A New Chapter as a College Student Begins at the IDN Polytechnic's Flow Fest.
+                        </h2>
+                        <div class="mt-2 flex items-center gap-2 text-[12.5px]">
+                            <span class="font-medium text-[#141414]">Study</span>
+                            <span class="text-[#9ca3af]">10 Nov 2026</span>
+                        </div>
+                    </a>
+                </article>
+                <!-- Pesan jika hasil pencarian kosong -->
+                <div id="emptyState" class="hidden py-16 text-center text-[#9ca3af] text-[14.5px]">
+                    Artikel yang Anda cari tidak ditemukan.
+                </div>
+
+            </div>
+    </main>
+
+    <!-- ========================================================================
+         FOOTER MONOKROM BERGRADASI (Hitam & Putih)
+         ======================================================================== -->
+    <footer
+        class="relative overflow-hidden pt-24 sm:pt-32 text-[#141414]"
+        style="background: linear-gradient(180deg,
+            #ffffff 0%,
+            #ffffff 14%,
+            #fafafa 24%,
+            #f1f1f3 34%,
+            #e2e2e6 44%,
+            #c8c8ce 54%,
+            #9d9da6 64%,
+            #6a6a73 74%,
+            #3a3a40 84%,
+            #1b1b1f 92%,
+            #09090b 100%
+        );">
+        
+        <!-- Bagian Atas: Tagline Kiri & 4 Kolom Link Kanan -->
+        <div class="relative z-10 max-w-[1060px] mx-auto px-6 sm:px-8">
+            <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">
+
+                <!-- Kolom Kiri: Tagline & Hak Cipta -->
+                <div class="lg:col-span-5 flex flex-col justify-between">
+                    <h2 class="text-[28px] sm:text-[34px] font-semibold tracking-[-0.03em] leading-[1.15] text-[#141414]">
+                        Build it clean.<br />
+                        Ship it bold
+                        <span class="inline-flex items-center justify-center align-middle ml-1 w-8 h-8 rounded-full bg-[#141414] text-white text-[14px] -rotate-6">
+                            <i class="fa-solid fa-terminal"></i>
+                        </span>
+                    </h2>
+
+                    <div class="mt-8 text-[12px] text-[#52525b] leading-relaxed">
+                        <p>© 2026 Ekuivalen. All rights reserved.</p>
+                        <p>Crafted with care by <span class="font-semibold text-[#141414]">Ekuivalen</span></p>
+                    </div>
+                </div>
+
+                <!-- Kolom Kanan: 4 Kolom Menu Navigasi -->
+                <div class="lg:col-span-7 grid grid-cols-2 sm:grid-cols-4 gap-8 text-[13px]">
+
+                    <!-- Kolom 1: Explore -->
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">
+                            EXPLORE
+                        </p>
+                        <ul class="space-y-2.5 text-[#3f3f46] font-medium">
+                            <li><a href="index.html" class="hover:text-[#09090b] transition-colors">Home</a></li>
+                            <li><a href="blog.html" class="hover:text-[#09090b] transition-colors">Blog</a></li>
+                            <li><a href="index.html#portfolio" class="hover:text-[#09090b] transition-colors">Projects</a></li>
+                            <li><a href="index.html#about" class="hover:text-[#09090b] transition-colors">About</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Kolom 2: Works -->
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">
+                            WORKS
+                        </p>
+                        <ul class="space-y-2.5 text-[#3f3f46] font-medium">
+                            <li><a href="index.html#portfolio" class="hover:text-[#09090b] transition-colors">Web Apps</a></li>
+                            <li><a href="index.html#video" class="hover:text-[#09090b] transition-colors">Latest Video</a></li>
+                            <li><a href="index.html#products" class="hover:text-[#09090b] transition-colors">Products</a></li>
+                            <li><a href="index.html#products" class="hover:text-[#09090b] transition-colors">Templates</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Kolom 3: Connect -->
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">
+                            CONNECT
+                        </p>
+                        <ul class="space-y-2.5 text-[#3f3f46] font-medium">
+                            <li><a href="https://github.com/Ekuivalen07" target="_blank" rel="noopener noreferrer" class="hover:text-[#09090b] transition-colors">GitHub</a></li>
+                            <li><a href="index.html#video" class="hover:text-[#09090b] transition-colors">YouTube</a></li>
+                            <li><a href="index.html#about" class="hover:text-[#09090b] transition-colors">LinkedIn</a></li>
+                            <li><a href="index.html#portfolio" class="hover:text-[#09090b] transition-colors">Instagram</a></li>
+                            <li><a href="mailto:business@adplay.id" class="hover:text-[#09090b] transition-colors">Email</a></li>
+                        </ul>
+                    </div>
+
+                    <!-- Kolom 4: Info -->
+                    <div>
+                        <p class="font-mono text-[10.5px] uppercase tracking-[0.14em] text-[#71717a] mb-4">
+                            INFO
+                        </p>
+                        <ul class="space-y-2.5 text-[#3f3f46] font-medium">
+                            <li><a href="index.html#contact" class="hover:text-[#09090b] transition-colors">Inquiry / Collab</a></li>
+                            <li><a href="#newsletter" onclick="showNewsletterToast(event)" class="hover:text-[#09090b] transition-colors">Newsletter</a></li>
+                            <li><a href="index.html#about" class="hover:text-[#09090b] transition-colors">Experience</a></li>
+                        </ul>
+                    </div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- Bagian Bawah: Tipografi Raksasa "Ekuivalen" + Stiker Monokrom -->
+        <div class="relative z-10 w-full mt-16 sm:mt-24 flex justify-center select-none pointer-events-none">
+            <div class="relative inline-block px-2">
+
+                <!-- Teks Raksasa Putih -->
+                <span class="block font-black text-white text-[18.5vw] lg:text-[17vw] xl:text-[210px] tracking-[-0.045em] leading-[0.76] translate-y-[10%]">
+                    Ekuivalen
+                </span>
+
+                <!-- Dekorasi Stiker Monokrom (Hapus blok ini jika ingin teks polos saja) -->
+                <span class="hidden sm:flex absolute -top-4 left-[3%] w-11 h-11 md:w-14 md:h-14 rounded-2xl bg-[#141414] text-white border-2 border-white shadow-xl items-center justify-center text-lg md:text-2xl -rotate-12">
+                    <i class="fa-solid fa-code"></i>
+                </span>
+                <span class="hidden sm:flex absolute -top-7 left-[44%] w-10 h-10 md:w-12 md:h-12 rounded-full bg-white text-[#141414] border-2 border-[#141414] shadow-xl items-center justify-center text-base md:text-xl rotate-12">
+                    <i class="fa-brands fa-laravel"></i>
+                </span>
+                <span class="hidden sm:flex absolute top-[28%] right-[24%] w-10 h-10 md:w-12 md:h-12 rounded-xl bg-[#141414] text-white border-2 border-white shadow-xl items-center justify-center text-base md:text-lg rotate-6">
+                    <i class="fa-solid fa-bolt"></i>
+                </span>
+                <span class="hidden sm:flex absolute -top-3 right-[5%] w-11 h-11 md:w-14 md:h-14 rounded-2xl bg-white text-[#141414] border-2 border-[#141414] shadow-xl items-center justify-center text-lg md:text-2xl -rotate-6">
+                    <i class="fa-brands fa-github"></i>
+                </span>
+
+            </div>
+        </div>
+    </footer>
+
+    <!-- Toast Notification -->
+    <div id="toastBox"
+        class="fixed bottom-6 right-6 z-50 pointer-events-none opacity-0 translate-y-3 transition-all duration-300 bg-[#141414] text-white text-[13px] font-medium px-5 py-3 rounded-full shadow-xl border border-white/10 flex items-center gap-2">
+        <span class="w-2 h-2 rounded-full bg-emerald-400"></span>
+        <span id="toastMessage">Terima kasih!</span>
+    </div>
+
+    <!-- ========================================================================
+         JAVASCRIPT: ANIMASI NAVBAR, PENCARIAN & FILTER KATEGORI
+         ======================================================================== -->
+    <script>
+        // 1. Logika Animasi Navbar saat di-scroll
+        const navbarWrapper = document.getElementById('navbarWrapper');
+        function handleNavbarScroll() {
+            if (window.scrollY > 30) {
+                navbarWrapper.classList.add('is-scrolled');
+            } else {
+                navbarWrapper.classList.remove('is-scrolled');
+            }
+        }
+        window.addEventListener('scroll', handleNavbarScroll, { passive: true });
+        window.addEventListener('load', handleNavbarScroll);
+
+        // 2. Logika Filter Kategori & Pencarian Blog
+        const searchInput = document.getElementById('blogSearchInput');
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        const blogItems = document.querySelectorAll('.blog-item');
+        const emptyState = document.getElementById('emptyState');
+
+        let activeCategory = 'all';
+
+        function filterArticles() {
+            const keyword = searchInput.value.toLowerCase().trim();
+            let visibleCount = 0;
+
+            blogItems.forEach((item) => {
+                const category = item.getAttribute('data-category');
+                const title = item.querySelector('.blog-title').textContent.toLowerCase();
+
+                const matchesCategory = activeCategory === 'all' || category === activeCategory;
+                const matchesSearch = title.includes(keyword) || category.toLowerCase().includes(keyword);
+
+                if (matchesCategory && matchesSearch) {
+                    item.classList.remove('hidden');
+                    visibleCount++;
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+
+            if (visibleCount === 0) {
+                emptyState.classList.remove('hidden');
+            } else {
+                emptyState.classList.add('hidden');
+            }
+        }
+
+        searchInput.addEventListener('input', filterArticles);
+
+        filterButtons.forEach((btn) => {
+            btn.addEventListener('click', () => {
+                activeCategory = btn.getAttribute('data-filter');
+
+                filterButtons.forEach((b) => {
+                    b.classList.remove('font-semibold', 'text-[#141414]');
+                    b.classList.add('font-medium', 'text-[#9ca3af]');
+                });
+
+                btn.classList.remove('font-medium', 'text-[#9ca3af]');
+                btn.classList.add('font-semibold', 'text-[#141414]');
+
+                filterArticles();
+            });
+        });
+
+        // 3. Toast Notification untuk Newsletter
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('toastBox');
+            const msg = document.getElementById('toastMessage');
+            msg.textContent = message;
+
+            toast.classList.remove('opacity-0', 'translate-y-3');
+            toast.classList.add('opacity-100', 'translate-y-0');
+
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => {
+                toast.classList.remove('opacity-100', 'translate-y-0');
+                toast.classList.add('opacity-0', 'translate-y-3');
+            }, 2800);
+        }
+
+        function showNewsletterToast(e) {
+            e.preventDefault();
+            showToast('Terima kasih! Anda telah masuk daftar Newsletter.');
+        }
+    </script>
+</body>
+
+</html>
